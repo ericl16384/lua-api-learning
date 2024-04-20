@@ -26,6 +26,10 @@ import lupa
 #     raise AttributeError("access denied")
 
 
+# class LockedLuaAPI:
+
+
+
 # Initialize Lua runtime
 lua = lupa.LuaRuntime(
     register_eval=False,
