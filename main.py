@@ -1,3 +1,5 @@
+import traceback
+
 # https://pypi.org/project/lupa/
 import lupa
 
@@ -11,7 +13,10 @@ lua = lupa.LuaRuntime(
 globals = lua.globals()
 
 # Block dangerous functions (very important to security!!!)
-blocked_globals = ["debug", "io", "os", "package", "python"]
+# https://www.lua.org/manual/5.4/
+blocked_globals = [
+    "debug", "dofile", "io", "load", "loadfile", "os", "package", "python", "require"
+]
 for b in blocked_globals:
     globals[b] = None
 
@@ -26,12 +31,15 @@ globals.print = lambda *args: print_log.append(args)
 # Load script
 with open("script.lua", "r") as f:
     script = f.read()
-lua.execute(script)
+try:
+    lua.execute(script)
+except:
+    print(traceback.format_exc())
 
 
 print("caught print output:")
 # for l in globals.__caught_print_output.split("\n"):
 #     print(">>>", l)
 for l in print_log:
-    print("\t".join(l))
+    print(" ".join(l))
 
