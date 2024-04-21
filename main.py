@@ -1,7 +1,8 @@
-import logging, traceback
+import logging, json, traceback
 
 # https://pypi.org/project/lupa/
 import lupa
+import lupa.lua54
 
 # Initialize Lua runtime
 lua = lupa.LuaRuntime(
@@ -22,15 +23,24 @@ for b in blocked_globals:
 
 # Capture print statments (otherwise they go to stdout)
 logger = logging.getLogger("lua")
-with open("scripts/game_startup.log", "w") as f: pass # clear file
-logging.basicConfig(filename="scripts/game_startup.log", encoding="utf-8", level=logging.DEBUG,
+with open("scripts/game.log", "w") as f: pass # clear file
+logging.basicConfig(filename="scripts/game.log", encoding="utf-8", level=logging.DEBUG,
     format="%(asctime)s %(levelname)s:\t%(message)s",
     datefmt="%m/%d/%Y %I:%M:%S %p"
 )
-globals.print = lambda *args: logger.info(args)
+# def log_lua_print(*args):
+#     out = []
+#     for a in args:
+#         if lupa.lua_type(args[0]) == "table":
+#             print(a)
+#             print(dict(a))
+#             print(json.dumps(dict(a)))
+#             # args[0] = json.dumps(args[0])
+#             out.append()
+#     logger.info(out)
+globals.print = logger.info
 
 # handy util
-
 
 
 
@@ -38,12 +48,8 @@ globals.print = lambda *args: logger.info(args)
 
 print("loading script files")
 
-with open("scripts/game_startup.lua", "r") as f:
-    game_startup_script = f.read()
-with open("scripts/game_loop.lua", "r") as f:
-    game_loop_script = f.read()
-with open("scripts/game_interface.lua", "r") as f:
-    game_interface_script = f.read()
+with open("scripts/game.lua", "r") as f:
+    game_script = f.read()
 
 with open("scripts/player.lua", "r") as f:
     player_script = f.read()
@@ -52,7 +58,7 @@ with open("scripts/player.lua", "r") as f:
 
 # start a little game
 
-lua.execute(game_startup_script)
+lua.execute(game_script)
 
 
 
