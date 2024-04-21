@@ -1,4 +1,4 @@
-import traceback
+import logging, traceback
 
 # https://pypi.org/project/lupa/
 import lupa
@@ -21,8 +21,38 @@ for b in blocked_globals:
     globals[b] = None
 
 # Capture print statments (otherwise they go to stdout)
-print_log = []
-globals.print = lambda *args: print_log.append(args)
+logger = logging.getLogger("lua")
+with open("scripts/game_startup.log", "w") as f: pass # clear file
+logging.basicConfig(filename="scripts/game_startup.log", encoding="utf-8", level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s:\t%(message)s",
+    datefmt="%m/%d/%Y %I:%M:%S %p"
+)
+globals.print = lambda *args: logger.info(args)
+
+# handy util
+
+
+
+
+# scripts
+
+print("loading script files")
+
+with open("scripts/game_startup.lua", "r") as f:
+    game_startup_script = f.read()
+with open("scripts/game_loop.lua", "r") as f:
+    game_loop_script = f.read()
+with open("scripts/game_interface.lua", "r") as f:
+    game_interface_script = f.read()
+
+with open("scripts/player.lua", "r") as f:
+    player_script = f.read()
+
+
+
+# start a little game
+
+lua.execute(game_startup_script)
 
 
 
@@ -117,18 +147,7 @@ globals.turn_left = lambda: turn(1)
 
 
 
-# Load script
-with open("script.lua", "r") as f:
-    script = f.read()
 # try:
-lua.execute(script)
+lua.execute(player_script)
 # except:
 #     print(traceback.format_exc())
-
-
-print("caught print output:")
-# for l in globals.__caught_print_output.split("\n"):
-#     print(">>>", l)
-for l in print_log:
-    print(" ".join(l))
-
