@@ -63,6 +63,9 @@ def get_tile(xy):
             map[xy] = "empty"
     return map[xy]
 
+import visualization
+visualization.init()
+
 def print_state(action):
     out = ""
     out += ["east", "north", "west", "south"][facing]
@@ -70,7 +73,9 @@ def print_state(action):
     out += str(pos)
     out += "\t--> "
     out += action
-    input(out)
+    print(out)
+
+    visualization.draw_map(map, pos, facing)
 
 def move(new_pos):
     global pos

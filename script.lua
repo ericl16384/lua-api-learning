@@ -5,7 +5,7 @@
 --   while move_right() do end
 -- end
 
--- solves mazes without loops
+-- solves mazes without loops - but broken :/
 function amazing()
   moves = 0
   while move_forward() do
