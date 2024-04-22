@@ -67,7 +67,7 @@ lua.execute(game_script)
 # a little game
 
 # import numpy as np
-import random
+# import random
 
 facings = ( # counterclockwise
     (1, 0),
@@ -105,7 +105,7 @@ get_tile = globals.get_tile
 import visualization
 visualization.init()
 
-def print_state(action=None):
+def print_state():
     # out = ""
     # out += ["east", "north", "west", "south"][facing]
     # out += "\t"
@@ -127,6 +127,8 @@ def print_state(action=None):
         globals.units[1].x, globals.units[1].y
     ), facing)
 
+globals.turn_end = print_state
+
 def move(new_pos):
     # global pos
     # new_pos = tuple(new_pos)
@@ -143,14 +145,14 @@ def move(new_pos):
         return True
     return False
 
-def turn(amount):
-    assert amount in (1, -1)
-    global facing
+# def turn(amount):
+#     assert amount in (1, -1)
+#     global facing
 
-    print_state("turn " + {1:"left",-1:"right"}[amount])
+#     print_state("turn " + {1:"left",-1:"right"}[amount])
 
-    facing += amount
-    facing %= len(facings)
+#     facing += amount
+#     facing %= len(facings)
 
 
 # globals.move_up = lambda: move((pos[0], pos[1] + 1))
@@ -158,14 +160,19 @@ def turn(amount):
 # globals.move_down = lambda: move((pos[0], pos[1] - 1))
 # globals.move_right = lambda: move((pos[0] + 1, pos[1]))
 
-globals.move_forward = lambda: move((
-    # pos[0] + facings[facing][0],
-    # pos[1] + facings[facing][1]
-    globals.units[1].x + facings[facing][0],
-    globals.units[1].y + facings[facing][1]
-))
-globals.turn_right = lambda: turn(-1)
-globals.turn_left = lambda: turn(1)
+# globals.move_up = lambda: move((globals.units[1].x, globals.units[1].y + 1))
+# globals.move_left = lambda: move((globals.units[1].x - 1, globals.units[1].y))
+# globals.move_down = lambda: move((globals.units[1].x, globals.units[1].y - 1))
+# globals.move_right = lambda: move((globals.units[1].x + 1, globals.units[1].y))
+
+# globals.move_forward = lambda: move((
+#     # pos[0] + facings[facing][0],
+#     # pos[1] + facings[facing][1]
+#     globals.units[1].x + facings[facing][0],
+#     globals.units[1].y + facings[facing][1]
+# ))
+# globals.turn_right = lambda: turn(-1)
+# globals.turn_left = lambda: turn(1)
 
 
 

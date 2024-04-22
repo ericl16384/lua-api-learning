@@ -79,3 +79,33 @@ print(json_dumps(units))
 print(json_dumps(map))
 
 
+
+function move(unit, x, y)
+    if get_tile(x, y) == "empty" then
+        unit.x = x
+        unit.y = y
+        return true
+    end
+    return false
+end
+
+function move_up()
+    out = move(units[1], units[1].x, units[1].y+1)
+    turn_end()
+    return out
+end
+function move_left()
+    out = move(units[1], units[1].x-1, units[1].y)
+    turn_end()
+    return out
+end
+function move_down()
+    out = move(units[1], units[1].x, units[1].y-1)
+    turn_end()
+    return out
+end
+function move_right()
+    out = move(units[1], units[1].x+1, units[1].y)
+    turn_end()
+    return out
+end
