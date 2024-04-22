@@ -39,9 +39,20 @@ end
 
 
 map = {}
+
 for x=-2,2 do
     for y=-2,2 do
-        map[x .. "," .. y] = "grass"
+        map[x .. "," .. y] = "empty"
+    end
+end
+for x=0,4 do
+    for y=0,0 do
+        map[x .. "," .. y] = "empty"
+    end
+end
+for x=4,4 do
+    for y=-2,5 do
+        map[x .. "," .. y] = "empty"
     end
 end
 

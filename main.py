@@ -81,12 +81,19 @@ facing = 0
 map = {tuple(pos): "empty"}
 
 # a little maze
-def clear_area(min_xy, max_xy):
-    for x in range(min_xy[0], max_xy[0] + 1):
-        for y in range(min_xy[1], max_xy[1] + 1):
-            map[(x, y)] = "empty"
-clear_area((0, 0), (4, 0))
-clear_area((4, -2), (4, 3))
+# def clear_area(min_xy, max_xy):
+#     for x in range(min_xy[0], max_xy[0] + 1):
+#         for y in range(min_xy[1], max_xy[1] + 1):
+#             map[(x, y)] = "empty"
+# clear_area((0, 0), (4, 0))
+# clear_area((4, -2), (4, 3))
+for k, v in globals.map.items():
+    print(k, v)
+    xy = k.split(",")
+    x = int(xy[0])
+    y = int(xy[1])
+    map[x, y] = v
+    # input()
 
 def get_tile(xy):
     xy = tuple(xy)
