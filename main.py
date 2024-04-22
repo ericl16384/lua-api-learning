@@ -78,7 +78,7 @@ facings = ( # counterclockwise
 
 pos = (0, 0)
 facing = 0
-map = {tuple(pos): "empty"}
+# map = {}
 
 # a little maze
 # def clear_area(min_xy, max_xy):
@@ -87,24 +87,20 @@ map = {tuple(pos): "empty"}
 #             map[(x, y)] = "empty"
 # clear_area((0, 0), (4, 0))
 # clear_area((4, -2), (4, 3))
-for k, v in globals.map.items():
-    print(k, v)
-    xy = k.split(",")
-    x = int(xy[0])
-    y = int(xy[1])
-    map[x, y] = v
-    # input()
 
-def get_tile(xy):
-    xy = tuple(xy)
-    if xy not in map:
-        r = random.random()
-        # if r < 0.1:
-        if max(xy) > 1 or min(xy) < -1:
-            map[xy] = "wall"
-        else:
-            map[xy] = "empty"
-    return map[xy]
+
+# def get_tile(xy):
+#     xy = tuple(xy)
+#     if xy not in map:
+#         r = random.random()
+#         # if r < 0.1:
+#         # if max(xy) > 1 or min(xy) < -1:
+#         #     map[xy] = "wall"
+#         # else:
+#         #     map[xy] = "empty"
+#         map[xy] = "wall"
+#     return map[xy]
+get_tile = globals.get_tile
 
 import visualization
 visualization.init()
@@ -118,6 +114,14 @@ def print_state(action):
     out += action
     print(out)
 
+    map = {}
+    for k, v in globals.map.items():
+        # print(k, v)
+        xy = k.split(",")
+        x = int(xy[0])
+        y = int(xy[1])
+        map[x, y] = v
+        # input()
     visualization.draw_map(map, pos, facing)
 
 def move(new_pos):
@@ -126,7 +130,9 @@ def move(new_pos):
 
     print_state("move")
 
-    if get_tile(new_pos) == "empty":
+    print(get_tile(*new_pos))
+
+    if get_tile(*new_pos) == "empty":
         pos = new_pos
         return True
     return False

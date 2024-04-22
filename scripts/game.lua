@@ -40,6 +40,22 @@ end
 
 map = {}
 
+function generate_tile(x, y)
+    return "wall"
+end
+
+function set_tile(x, y, value)
+    map[x .. "," .. y] = value
+end
+
+function get_tile(x, y)
+    if map[x .. "," .. y] == nil then
+        map[x .. "," .. y] = generate_tile(x, y)
+    end
+    return map[x .. "," .. y]
+end
+
+
 for x=-2,2 do
     for y=-2,2 do
         map[x .. "," .. y] = "empty"
@@ -56,7 +72,10 @@ for x=4,4 do
     end
 end
 
+
 units = {Unit(0, 0)}
 
 print(json_dumps(units))
 print(json_dumps(map))
+
+
