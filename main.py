@@ -76,7 +76,7 @@ facings = ( # counterclockwise
     (0, -1)
 )
 
-pos = (0, 0)
+# pos = (0, 0)
 facing = 0
 # map = {}
 
@@ -105,14 +105,14 @@ get_tile = globals.get_tile
 import visualization
 visualization.init()
 
-def print_state(action):
-    out = ""
-    out += ["east", "north", "west", "south"][facing]
-    out += "\t"
-    out += str(pos)
-    out += "\t--> "
-    out += action
-    print(out)
+def print_state(action=None):
+    # out = ""
+    # out += ["east", "north", "west", "south"][facing]
+    # out += "\t"
+    # out += str(pos)
+    # out += "\t--> "
+    # out += action
+    # print(out)
 
     map = {}
     for k, v in globals.map.items():
@@ -122,18 +122,24 @@ def print_state(action):
         y = int(xy[1])
         map[x, y] = v
         # input()
-    visualization.draw_map(map, pos, facing)
+    # visualization.draw_map(map, pos, facing)
+    visualization.draw_map(map, (
+        globals.units[1].x, globals.units[1].y
+    ), facing)
 
 def move(new_pos):
-    global pos
-    new_pos = tuple(new_pos)
+    # global pos
+    # new_pos = tuple(new_pos)
 
     print_state("move")
+    # print("move")
 
-    print(get_tile(*new_pos))
+    # print(get_tile(*new_pos))
 
     if get_tile(*new_pos) == "empty":
-        pos = new_pos
+        # pos = new_pos
+        globals.units[1].x = new_pos[0]
+        globals.units[1].y = new_pos[1]
         return True
     return False
 
@@ -153,8 +159,10 @@ def turn(amount):
 # globals.move_right = lambda: move((pos[0] + 1, pos[1]))
 
 globals.move_forward = lambda: move((
-    pos[0] + facings[facing][0],
-    pos[1] + facings[facing][1]
+    # pos[0] + facings[facing][0],
+    # pos[1] + facings[facing][1]
+    globals.units[1].x + facings[facing][0],
+    globals.units[1].y + facings[facing][1]
 ))
 globals.turn_right = lambda: turn(-1)
 globals.turn_left = lambda: turn(1)
