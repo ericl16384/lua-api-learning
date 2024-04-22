@@ -39,7 +39,7 @@ def draw_map(map, robo_pos, facing):
     robot_points = [(math.cos(t+r)/2, math.sin(t+r)/2) for t in robot_angles]
     robot_points = [(p[0]+robo_pos[0], p[1]+robo_pos[1]) for p in robot_points]
 
-    print(robo_pos)
+    # print(robo_pos)
 
     pygame.draw.polygon(screen, "blue", [transform(p) for p in robot_points])
 

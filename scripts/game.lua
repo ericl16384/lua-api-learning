@@ -109,3 +109,6 @@ function move_right()
     turn_end()
     return out
 end
+
+
+INTERFACE = {move_up, move_left, move_down, move_right}

@@ -1,13 +1,12 @@
 import logging, json, traceback
 
 # https://pypi.org/project/lupa/
-import lupa
+# import lupa
 import lupa.lua54
 
-def create_lua_environment():
-
+def create_lua_environment(logging_filename):
     # Initialize Lua runtime
-    lua = lupa.LuaRuntime(
+    lua = lupa.lua54.LuaRuntime(
         register_eval=False,
         unpack_returned_tuples=True,
         # attribute_handlers=(getter, setter),
@@ -25,9 +24,10 @@ def create_lua_environment():
 
     # Capture print statments (otherwise they go to stdout)
     logger = logging.getLogger("lua")
-    with open("scripts/game.log", "w") as f: pass # clear file
-    logging.basicConfig(filename="scripts/game.log", encoding="utf-8", level=logging.DEBUG,
-        format="%(asctime)s %(levelname)s:\t%(message)s",
+    with open("scripts/game.log", "w"): pass # clear file
+    logging.basicConfig(filename=logging_filename, encoding="utf-8", level=logging.DEBUG,
+        # format="%(asctime)s %(levelname)s:\t%(message)s",
+        format="%(asctime)s: %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p"
     )
     # def log_lua_print(*args):
@@ -44,8 +44,6 @@ def create_lua_environment():
 
     return lua, globals
 
-# handy util
-
 
 
 # scripts
@@ -61,14 +59,6 @@ with open("scripts/player.lua", "r") as f:
 
 
 # start a little game
-
-lua, globals = create_lua_environment()
-
-lua.execute(game_script)
-
-
-
-# a little game
 
 import visualization
 visualization.init()
@@ -87,12 +77,22 @@ def visualize():
         globals.units[1].x, globals.units[1].y
     # ), facing)
     ), 0)
-globals.turn_end = visualize
 
 
+game_lua, game_globals = create_lua_environment("scripts/game.log")
+player_lua, player_globals = create_lua_environment("scripts/player.log")
+
+game_globals.turn_end = visualize
+
+
+game_lua.execute(game_script)
+
+
+for key, value in game_globals.INTERFACE.items():
+    player_globals[key] = value
 
 
 # try:
-lua.execute(player_script)
+player_lua.execute(player_script)
 # except:
 #     print(traceback.format_exc())
