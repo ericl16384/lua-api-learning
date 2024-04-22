@@ -1,10 +1,10 @@
-import logging, json, traceback
+import logging, traceback
 
 # https://pypi.org/project/lupa/
 # import lupa
 import lupa.lua54
 
-def create_lua_environment(logging_filename):
+def create_lua_environment(logger_filename):
     # Initialize Lua runtime
     lua = lupa.lua54.LuaRuntime(
         register_eval=False,
@@ -24,8 +24,8 @@ def create_lua_environment(logging_filename):
 
     # Capture print statments (otherwise they go to stdout)
     logger = logging.getLogger("lua")
-    with open("scripts/game.log", "w"): pass # clear file
-    logging.basicConfig(filename=logging_filename, encoding="utf-8", level=logging.DEBUG,
+    with open(logger_filename, "w"): pass # clear file
+    logging.basicConfig(filename=logger_filename, encoding="utf-8", level=logging.DEBUG,
         # format="%(asctime)s %(levelname)s:\t%(message)s",
         format="%(asctime)s: %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p"
@@ -42,7 +42,7 @@ def create_lua_environment(logging_filename):
     #     logger.info(out)
     globals.print = logger.info
 
-    return lua, globals
+    return lua
 
 
 
@@ -79,20 +79,31 @@ def visualize():
     ), 0)
 
 
-game_lua, game_globals = create_lua_environment("scripts/game.log")
-player_lua, player_globals = create_lua_environment("scripts/player.log")
-
-game_globals.turn_end = visualize
+lua, globals = create_lua_environment("scripts/game.log")
+lua_player, globals_player = create_lua_environment("scripts/player.log")
 
 
-game_lua.execute(game_script)
+
+init_globals_keys = list(globals.keys())
+
+globals.turn_end = visualize
 
 
-for key, value in game_globals.INTERFACE.items():
-    player_globals[key] = value
+lua.execute(game_script)
+
+
+interface = list(globals.INTERFACE.values())
+
+saved_variables = init_globals_keys + interface
+
+for key, value in globals.items():
+    print(key)
+    if key not in saved_variables:
+        globals[key] = None
+        print("        DELETED")
 
 
 # try:
-player_lua.execute(player_script)
+lua.execute(player_script)
 # except:
 #     print(traceback.format_exc())

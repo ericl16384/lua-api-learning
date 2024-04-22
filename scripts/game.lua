@@ -111,4 +111,4 @@ function move_right()
 end
 
 
-INTERFACE = {move_up, move_left, move_down, move_right}
+INTERFACE = {"move_up", "move_left", "move_down", "move_right"}
