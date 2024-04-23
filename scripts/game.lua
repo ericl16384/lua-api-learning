@@ -91,24 +91,35 @@ end
 
 function move_up()
     out = move(units[1], units[1].x, units[1].y+1)
+    print("move_up")
     turn_end()
     return out
 end
 function move_left()
     out = move(units[1], units[1].x-1, units[1].y)
+    print("move_left")
     turn_end()
     return out
 end
 function move_down()
     out = move(units[1], units[1].x, units[1].y-1)
+    print("move_left")
     turn_end()
     return out
 end
 function move_right()
     out = move(units[1], units[1].x+1, units[1].y)
+    print("move_right")
     turn_end()
     return out
 end
 
 
-INTERFACE = {"move_up", "move_left", "move_down", "move_right"}
+-- co = coroutine.create(function()
+--     for i=1,10 do
+--         print("co", i)
+--         coroutine.yield(i)
+--     end
+-- end)
+
+INTERFACE_FUNCTIONS = {"move_up", "move_left", "move_down", "move_right"}

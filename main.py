@@ -1,4 +1,25 @@
-import logging, traceback
+import logging, random, traceback
+
+# logging.basicConfig(encoding="utf-8", level=logging.DEBUG,
+#     # format="%(asctime)s %(levelname)s:\t%(message)s",
+#     format="%(asctime)s: %(message)s",
+#     datefmt="%m/%d/%Y %I:%M:%S %p"
+# )
+logging_formatter = logging.Formatter("%(asctime)s: %(message)s")
+
+# https://stackoverflow.com/questions/11232230/logging-to-two-files-with-different-settings
+def setup_logger(name, log_file, level=logging.INFO):
+    """To setup as many loggers as you want"""
+
+    handler = logging.FileHandler(log_file)        
+    handler.setFormatter(logging_formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+
+    return logger
+
 
 # https://pypi.org/project/lupa/
 # import lupa
@@ -23,26 +44,11 @@ def create_lua_environment(logger_filename):
         globals[b] = None
 
     # Capture print statments (otherwise they go to stdout)
-    logger = logging.getLogger("lua")
     with open(logger_filename, "w"): pass # clear file
-    logging.basicConfig(filename=logger_filename, encoding="utf-8", level=logging.DEBUG,
-        # format="%(asctime)s %(levelname)s:\t%(message)s",
-        format="%(asctime)s: %(message)s",
-        datefmt="%m/%d/%Y %I:%M:%S %p"
-    )
-    # def log_lua_print(*args):
-    #     out = []
-    #     for a in args:
-    #         if lupa.lua_type(args[0]) == "table":
-    #             print(a)
-    #             print(dict(a))
-    #             print(json.dumps(dict(a)))
-    #             # args[0] = json.dumps(args[0])
-    #             out.append()
-    #     logger.info(out)
+    logger = setup_logger(logger_filename, logger_filename, logging.INFO)
     globals.print = logger.info
 
-    return lua
+    return lua, globals
 
 
 
@@ -63,9 +69,9 @@ with open("scripts/player.lua", "r") as f:
 import visualization
 visualization.init()
 
-def visualize():
+def visualize(lua_globals):
     map = {}
-    for k, v in globals.map.items():
+    for k, v in lua_globals.map.items():
         # print(k, v)
         xy = k.split(",")
         x = int(xy[0])
@@ -74,36 +80,48 @@ def visualize():
         # input()
     # visualization.draw_map(map, pos, facing)
     visualization.draw_map(map, (
-        globals.units[1].x, globals.units[1].y
+        lua_globals.units[1].x, lua_globals.units[1].y
     # ), facing)
     ), 0)
 
 
-lua, globals = create_lua_environment("scripts/game.log")
-lua_player, globals_player = create_lua_environment("scripts/player.log")
+player_lua, player_globals = create_lua_environment("scripts/player.log")
+game_lua, game_globals = create_lua_environment("scripts/game.log")
 
 
 
-init_globals_keys = list(globals.keys())
+# init_globals_keys = list(globals.keys())
 
-globals.turn_end = visualize
+game_globals.turn_end = lambda : visualize(game_globals)
+
+player_lua.execute("print('Hello World')")
 
 
-lua.execute(game_script)
+game_lua.execute(game_script)
 
 
-interface = list(globals.INTERFACE.values())
+def get_interface_function(func_name):
+    def out(*args):
+        return game_globals[func_name](*args)
+    return out
+for func_name in game_globals["INTERFACE_FUNCTIONS"].values():
+    player_globals[func_name] = get_interface_function(func_name)
 
-saved_variables = init_globals_keys + interface
 
-for key, value in globals.items():
-    print(key)
-    if key not in saved_variables:
-        globals[key] = None
-        print("        DELETED")
+# interface = list(globals.INTERFACE.values())
 
+# saved_variables = init_globals_keys + interface
+
+# for key, value in globals.items():
+#     print(key)
+#     if key not in saved_variables:
+#         globals[key] = None
+#         print("        DELETED")
+
+
+visualize(game_globals)
 
 # try:
-lua.execute(player_script)
+player_lua.execute(player_script)
 # except:
 #     print(traceback.format_exc())
