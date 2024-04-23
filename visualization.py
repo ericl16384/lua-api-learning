@@ -5,7 +5,8 @@ screen = None
 
 tile_colors = {
     "empty": "white",
-    "wall": "red"
+    "wall": "red",
+    "goal": "green"
 }
 
 tile_size = 20
@@ -34,9 +35,11 @@ def draw_map(map, robo_pos, facing):
             transform(pos, True), (tile_size, tile_size)
         ), 1)
 
-    robot_angles = (0, math.pi*3/4, math.pi*5/4)
+    # robot_angles = (0, math.pi*3/4, math.pi*5/4)
+    robot_angles = (0, math.pi*1/2, math.pi*2/2, math.pi*3/2)
     r = facing * math.pi/2
-    robot_points = [(math.cos(t+r)/2, math.sin(t+r)/2) for t in robot_angles]
+    size = 0.8 / 2
+    robot_points = [(math.cos(t+r)*size, math.sin(t+r)*size) for t in robot_angles]
     robot_points = [(p[0]+robo_pos[0], p[1]+robo_pos[1]) for p in robot_points]
 
     # print(robo_pos)

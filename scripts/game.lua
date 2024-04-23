@@ -56,21 +56,48 @@ function get_tile(x, y)
 end
 
 
-for x=-2,2 do
-    for y=-2,2 do
-        map[x .. "," .. y] = "empty"
+for x=-1,1 do
+    for y=-1,1 do
+        set_tile(x, y, "empty")
     end
 end
 for x=0,4 do
     for y=0,0 do
-        map[x .. "," .. y] = "empty"
+        set_tile(x, y, "empty")
     end
 end
 for x=4,4 do
     for y=-2,5 do
-        map[x .. "," .. y] = "empty"
+        set_tile(x, y, "empty")
     end
 end
+for x=-6,5 do
+    for y=4,4 do
+        set_tile(x, y, "empty")
+    end
+end
+for x=-4,-3 do
+    for y=-2,3 do
+        set_tile(x, y, "empty")
+    end
+end
+for x=-10,-5 do
+    for y=-1,-1 do
+        set_tile(x, y, "empty")
+    end
+end
+for x=-10,-10 do
+    for y=-1,10 do
+        set_tile(x, y, "empty")
+    end
+end
+for x=-10,10 do
+    for y=10,10 do
+        set_tile(x, y, "empty")
+    end
+end
+set_tile(10, 10, "goal")
+
 
 
 units = {Unit(0, 0)}
