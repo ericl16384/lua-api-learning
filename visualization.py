@@ -3,11 +3,14 @@ import pygame
 
 screen = None
 
+background_color = "dark grey"
+
 tile_colors = {
     "empty": "white",
-    "wall": "red",
+    "wall": "black",
     "goal": "green"
 }
+
 
 tile_size = 20
 def transform(pos, tile_offset=False):
@@ -26,12 +29,13 @@ def init():
     screen = pygame.display.set_mode((1024, 576))
 
 def draw_map(map, robo_pos, facing):
-    screen.fill("black")
+    screen.fill(background_color)
     for pos, value in map.items():
+        pos = [int(i) for i in pos.split(",")]
         pygame.draw.rect(screen, tile_colors[value], (
             transform(pos, True), (tile_size, tile_size)
         ))
-        pygame.draw.rect(screen, "black", (
+        pygame.draw.rect(screen, background_color, (
             transform(pos, True), (tile_size, tile_size)
         ), 1)
 

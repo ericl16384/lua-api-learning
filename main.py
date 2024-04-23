@@ -66,15 +66,22 @@ import visualization
 visualization.init()
 
 def visualize(lua_globals):
-    map = {}
-    for k, v in lua_globals.map.items():
-        # print(k, v)
-        xy = k.split(",")
-        x = int(xy[0])
-        y = int(xy[1])
-        map[x, y] = v
-        # input()
-    # visualization.draw_map(map, pos, facing)
+    # map = {}
+    # for k, v in lua_globals.map.items():
+    # # for k, v in lua_globals.known_map.items():
+    #     # print(k, v)
+    #     xy = k.split(",")
+    #     x = int(xy[0])
+    #     y = int(xy[1])
+    #     map[x, y] = v
+    #     # input()
+    # # visualization.draw_map(map, pos, facing)
+
+    if lua_globals.fog_of_war:
+        map = lua_globals.known_map
+    else:
+        map = lua_globals.map
+
     visualization.draw_map(map, (
         lua_globals.units[1].x, lua_globals.units[1].y
     # ), facing)

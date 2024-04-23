@@ -39,6 +39,7 @@ end
 
 
 map = {}
+known_map = {}
 
 function generate_tile(x, y)
     return "wall"
@@ -53,6 +54,10 @@ function get_tile(x, y)
         map[x .. "," .. y] = generate_tile(x, y)
     end
     return map[x .. "," .. y]
+end
+
+function explore_tile(x, y)
+    known_map[x .. "," .. y] = get_tile(x, y)
 end
 
 
@@ -96,18 +101,23 @@ for x=-10,10 do
         set_tile(x, y, "empty")
     end
 end
+
 set_tile(10, 10, "goal")
+explore_tile(10, 10)
 
 
 
 units = {Unit(0, 0)}
 
-print(json_dumps(units))
-print(json_dumps(map))
+explore_tile(0, 0)
+
+-- print(json_dumps(units))
+-- print(json_dumps(map))
 
 
 
 function move(unit, x, y)
+    explore_tile(x, y)
     if get_tile(x, y) == "empty" then
         unit.x = x
         unit.y = y
@@ -150,3 +160,7 @@ end
 -- end)
 
 INTERFACE_FUNCTIONS = {"move_up", "move_left", "move_down", "move_right"}
+
+
+
+fog_of_war = true
