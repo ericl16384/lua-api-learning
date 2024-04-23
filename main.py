@@ -42,7 +42,7 @@ def create_lua_environment(logger_filename):
     # Capture print statments (otherwise they go to stdout)
     with open(logger_filename, "w"): pass # clear file
     logger = setup_logger(logger_filename, logger_filename, logging.INFO)
-    globals.print = logger.info
+    globals.print = lambda *args: logger.info(" ".join([str(arg) for arg in args]))
 
     return lua, globals
 
@@ -130,4 +130,4 @@ player_lua.execute(player_script)
 #     print(traceback.format_exc())
 
 while True:
-    visualize()
+    visualize(game_globals)
