@@ -1,11 +1,7 @@
 import logging, random, traceback
 
-# logging.basicConfig(encoding="utf-8", level=logging.DEBUG,
-#     # format="%(asctime)s %(levelname)s:\t%(message)s",
-#     format="%(asctime)s: %(message)s",
-#     datefmt="%m/%d/%Y %I:%M:%S %p"
-# )
-logging_formatter = logging.Formatter("%(asctime)s: %(message)s")
+# logging_formatter = logging.Formatter("%(asctime)s: %(message)s")
+logging_formatter = logging.Formatter("%(message)s")
 
 # https://stackoverflow.com/questions/11232230/logging-to-two-files-with-different-settings
 def setup_logger(name, log_file, level=logging.INFO):
@@ -94,7 +90,7 @@ game_lua, game_globals = create_lua_environment("scripts/game.log")
 
 game_globals.turn_end = lambda : visualize(game_globals)
 
-player_lua.execute("print('Hello World')")
+# player_lua.execute("print('Hello World')")
 
 
 game_lua.execute(game_script)
