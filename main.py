@@ -128,3 +128,6 @@ visualize(game_globals)
 player_lua.execute(player_script)
 # except:
 #     print(traceback.format_exc())
+
+while True:
+    visualize()

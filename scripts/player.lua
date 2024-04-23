@@ -20,6 +20,7 @@ while true do
     while move_right() do print("right") end
 end
 
+
 -- -- solves mazes without loops - but broken :/
 -- function amazing()
 --   moves = 0
