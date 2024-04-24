@@ -9,7 +9,7 @@
 while true do
     print("right")
     while move_right() do print("right") end
-    
+
     print("up")
     while move_up() do print("up") end
 

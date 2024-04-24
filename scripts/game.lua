@@ -161,12 +161,12 @@ function make_maze(width, height)
 
     closed_nodes[current.x .. "," .. current.y] = true
 
-    dead_end = false
-    while not dead_end do
+    finished = false
+    while not finished do
         adjacents = get_adjacents(current, 2)
-        -- print(json_dumps(adjacents))
-        print()
-        while true do
+
+        dead_end = false
+        while not dead_end do
             print("adjacents", json_dumps(adjacents))
             key = random_choice_key(adjacents)
             print("key", key)
@@ -207,17 +207,25 @@ function make_maze(width, height)
             end
         end
 
-        for i,h in ipairs(hallways) do
-            for x=h[1],h[3] do
-                for y=h[2],h[4] do
-                    set_tile(x, y, "empty")
-                end
+        if dead_end then
+            if current.parent == nil then
+                finished = true
+            else
+                current = current.parent
+            end
+        end
+    end
+
+    for i,h in ipairs(hallways) do
+        for x=h[1],h[3] do
+            for y=h[2],h[4] do
+                set_tile(x, y, "empty")
             end
         end
     end
 end
 
-make_maze(7, 7)
+make_maze(21, 11)
 
 
 
@@ -227,8 +235,9 @@ units = {Unit(0, 0)}
 set_tile(0, 0, "empty")
 explore_tile(0, 0)
 
-set_tile(10, 10, "goal")
-explore_tile(10, 10)
+goal = {10, 10}
+set_tile(goal[1], goal[2], "goal")
+explore_tile(goal[1], goal[2])
 
 -- print(json_dumps(units))
 -- print(json_dumps(map))
@@ -271,6 +280,22 @@ function move_right()
 end
 
 
+
+-- function get_direction_to_goal()
+--     x = goal[1] - units[1].x
+--     y = goal[2] - units[1].y
+
+--     dist = math.sqrt(x*x + y*y)
+--     x = x / dist
+--     y = y / dist
+
+--     out = {}
+--     out.x = x
+--     out.y = y
+--     return out
+-- end
+
+
 -- co = coroutine.create(function()
 --     for i=1,10 do
 --         print("co", i)
@@ -278,7 +303,7 @@ end
 --     end
 -- end)
 
-INTERFACE_FUNCTIONS = {"move_up", "move_left", "move_down", "move_right"}
+INTERFACE_FUNCTIONS = {"move_up", "move_left", "move_down", "move_right"}--, "get_direction_to_goal"}
 
 
 
