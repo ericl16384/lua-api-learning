@@ -24,6 +24,13 @@ function json_dumps(tbl)
     return out
 end
 
+-- function random_choice(tbl)
+--     print(#tbl)
+-- end
+-- x = {1, 2, 8, 7, 3, "12"}
+-- x["asdf"] = 4567
+-- random_choice(x)
+
 
 
 function Unit(x, y)
@@ -130,7 +137,7 @@ function make_maze(width, height)
 
     closed_nodes[current.x .. "," .. current.y] = true
 
-    for asdf=1,1000 do
+    while true do
         for i,node in ipairs(get_adjacents(current, 2)) do
             -- print(v.x)
             -- print(v.y)
