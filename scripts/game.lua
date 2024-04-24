@@ -9,27 +9,51 @@ function json_dumps(tbl)
         end
     end
 
-    out = "{"
-    first = true
-    for k, v in pairs(tbl) do
-        if first then
-            first = false
-        else
-            out = out .. ","
-        end
+    if type(tbl) == "table" then
+        out = "{"
+        first = true
+        for k, v in pairs(tbl) do
+            if first then
+                first = false
+            else
+                out = out .. ","
+            end
 
-        out = out .. format(k) .. ":" .. format(v)
+            out = out .. format(k) .. ":" .. format(v)
+        end
+        out = out .. "}"
+        return out
+    else
+        return format
     end
-    out = out .. "}"
-    return out
 end
 
--- function random_choice(tbl)
---     print(#tbl)
--- end
+function get_table_size(tbl)
+    count = 0
+    for k in pairs(tbl) do
+        count = count + 1
+    end
+    return count
+end
+function random_choice_key(tbl)
+    keys = {}
+    count = 0
+    for k in pairs(tbl) do
+        table.insert(keys, k)
+        count = count + 1
+    end
+    if count == 0 then
+        return
+    elseif count == 1 then
+        return keys[1]
+    else
+        return keys[math.random(1, count)]
+    end
+end
+
 -- x = {1, 2, 8, 7, 3, "12"}
 -- x["asdf"] = 4567
--- random_choice(x)
+-- print(random_choice_key(x))
 
 
 
@@ -137,8 +161,23 @@ function make_maze(width, height)
 
     closed_nodes[current.x .. "," .. current.y] = true
 
-    while true do
-        for i,node in ipairs(get_adjacents(current, 2)) do
+    dead_end = false
+    while not dead_end do
+        adjacents = get_adjacents(current, 2)
+        -- print(json_dumps(adjacents))
+        print()
+        while true do
+            print("adjacents", json_dumps(adjacents))
+            key = random_choice_key(adjacents)
+            print("key", key)
+            if key == nil then
+                dead_end = true
+                break
+            end
+            node = adjacents[key]
+            print("node", json_dumps(node))
+            adjacents[key] = nil
+
             -- print(v.x)
             -- print(v.y)
             -- print("empty")
@@ -178,7 +217,7 @@ function make_maze(width, height)
     end
 end
 
-make_maze(5, 5)
+make_maze(7, 7)
 
 
 
