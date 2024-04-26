@@ -17,6 +17,11 @@ class MyServer(BaseHTTPRequestHandler):
             pass
 
         self.wfile.write(bytes("<canvas id=\"drawCanvas\" width=\"1024\" height=\"576\" style=\"border:1px solid #000000;\">Sorry, you browser dones not support canvas.</canvas>", "utf-8"))
+        self.wfile.write(bytes("<script>", "utf-8"))
+        with open("canvas_script.js", "rb") as f:
+            self.wfile.write(f.read())
+            # self.wfile.write(bytes("asdfghjkl", "utf-8"))
+        self.wfile.write(bytes("</script>", "utf-8"))
 
         # display game.lua
         # self.wfile.write(bytes("<pre>", "utf-8"))
