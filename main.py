@@ -1,4 +1,4 @@
-import logging, random, traceback
+import logging#, random, traceback
 
 # logging_formatter = logging.Formatter("%(asctime)s: %(message)s")
 logging_formatter = logging.Formatter("%(message)s")
@@ -7,7 +7,7 @@ logging_formatter = logging.Formatter("%(message)s")
 def setup_logger(name, log_file, level=logging.INFO):
     """To setup as many loggers as you want"""
 
-    handler = logging.FileHandler(log_file)        
+    handler = logging.FileHandler(log_file)
     handler.setFormatter(logging_formatter)
 
     logger = logging.getLogger(name)
@@ -50,13 +50,14 @@ def create_lua_environment(logger_filename):
 
 # scripts
 
-print("loading script files")
-
-with open("scripts/game.lua", "r") as f:
-    game_script = f.read()
-
-with open("scripts/player.lua", "r") as f:
-    player_script = f.read()
+game_script = None
+player_script = None 
+def load_scripts():
+    global game_script, player_script
+    with open("scripts/game.lua", "r") as f:
+        game_script = f.read()
+    with open("scripts/player.lua", "r") as f:
+        player_script = f.read()
 
 
 
@@ -88,46 +89,37 @@ def visualize(lua_globals):
     ), 0)
 
 
-player_lua, player_globals = create_lua_environment("scripts/player.log")
-game_lua, game_globals = create_lua_environment("scripts/game.log")
 
 
+def main():
+    print("loading script files")
+    load_scripts()
 
-# init_globals_keys = list(globals.keys())
+    print("loading lua environments")
+    player_lua, player_globals = create_lua_environment("scripts/player.log")
+    game_lua, game_globals = create_lua_environment("scripts/game.log")
 
-game_globals.turn_end = lambda : visualize(game_globals)
+    game_globals.turn_end = lambda : visualize(game_globals)
+    game_lua.execute(game_script)
 
-# player_lua.execute("print('Hello World')")
-
-
-game_lua.execute(game_script)
-
-
-def get_interface_function(func_name):
-    def out(*args):
-        return game_globals[func_name](*args)
-    return out
-for func_name in game_globals["INTERFACE_FUNCTIONS"].values():
-    player_globals[func_name] = get_interface_function(func_name)
-
-
-# interface = list(globals.INTERFACE.values())
-
-# saved_variables = init_globals_keys + interface
-
-# for key, value in globals.items():
-#     print(key)
-#     if key not in saved_variables:
-#         globals[key] = None
-#         print("        DELETED")
+    def get_interface_function(func_name):
+        def out(*args):
+            return game_globals[func_name](*args)
+        return out
+    for func_name in game_globals["INTERFACE_FUNCTIONS"].values():
+        player_globals[func_name] = get_interface_function(func_name)
 
 
-visualize(game_globals)
-
-# try:
-player_lua.execute(player_script)
-# except:
-#     print(traceback.format_exc())
-
-while True:
     visualize(game_globals)
+
+    # try:
+    player_lua.execute(player_script)
+    # except:
+    #     print(traceback.format_exc())
+
+    while True:
+        visualize(game_globals)
+
+
+
+main()
