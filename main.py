@@ -1,4 +1,4 @@
-import logging#, random, traceback
+import hashlib, logging, traceback
 
 # logging_formatter = logging.Formatter("%(asctime)s: %(message)s")
 logging_formatter = logging.Formatter("%(message)s")
@@ -84,15 +84,48 @@ def visualize(lua_globals):
     ), 0)
 
 
-
+def basic_hash(x):
+    return hashlib.sha256(bytes(x, "utf-8")).hexdigest()
 
 class GameInstance:
+    class DisplayInterface:
+        def __init__(self):
+            self.framerate = 1
+
+            self.events = []
+
+        def get_HTML_canvas(self, width=1024, height=576):
+            # self_hash = basic_hash(self)
+
+            out = f"<canvas id='DisplayInterface' width='{width}' height='{height}' style='border:1px solid #000000;'>Sorry, you browser dones not support canvas.</canvas>"
+            out += "<script type='text/javascript'>"
+            out += f"var DisplayInterface_frame = 0;"
+            out += f"function DisplayInterface()"
+            out += "{"
+            out += "const canvas = document.getElementById('drawCanvas');"
+            out += "const ctx = canvas.getContext('2d');"
+            out += "DisplayInterface_frame++;"
+            out += "}"
+            out += f"DisplayInterface();"
+            out += f"window.setInterval(DisplayInterface, {1000 / self.framerate});"
+            out += "</script>"
+            return out
+
+        def draw_rect(self, x, y, w, h, color):
+            self.events.append(("draw_rect", x, y, w, h, color))
+            self.js += f"ctx.fillStyle = '{color}';"
+            self.js += f"ctx.fillRect({x}, {y}, {w}, {h});"
+
+        # def add_delay()
+
     def __init__(self, game_script, player_script):
         self.game_script = game_script
         self.player_script = player_script
 
-        self.game_lua, self.game_globals = create_lua_environment(f"scripts/game_{hash(game_script)}.log")
-        self.player_lua, self.player_globals = create_lua_environment(f"scripts/player_{hash(player_script)}.log")
+        self.game_lua, self.game_globals = create_lua_environment(f"scripts/game_{basic_hash(game_script)}.log")
+        self.player_lua, self.player_globals = create_lua_environment(f"scripts/player_{basic_hash(player_script)}.log")
+
+        # draw = []
 
         self.game_globals.turn_end = lambda : visualize(self.game_globals)
         self.game_lua.execute(game_script)
@@ -118,5 +151,6 @@ class GameInstance:
 
 
 # main()
-game = GameInstance(load_script("game"), load_script("player"))
-game.run_player()
+if __name__ == "__main__":
+    game = GameInstance(load_script("game"), load_script("player"))
+    game.run_player()

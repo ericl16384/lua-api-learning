@@ -1,5 +1,9 @@
-// const canvas = document.getElementById("drawCanvas");
-// const ctx = canvas.getContext("2d");
+<html>
+<head><title>lua-api-learning</title></head>
+<body>
+    <h1>This is an example web server for a Lua API game.</h1>
+    <canvas id="drawCanvas" width="1024" height="576" style="border:1px solid #000000;">Sorry, you browser does not support canvas.</canvas>
+    <script type="text/javascript">
 
 var DisplayInterface_frame = 0;
 var DisplayInterface_framerate = 25;
@@ -12,7 +16,10 @@ function DisplayInterface() {
     ctx.fillRect(DisplayInterface_frame, 300, 150, 75)
 
 
-    fetch("fetch_display")
+    fetch("fetch_display?" + new URLSearchParams({
+        game: 0,
+        frame: DisplayInterface_frame,
+    }))
         .then(response => response.json())
         .then(data => console.log(data));
 
@@ -23,3 +30,7 @@ window.setInterval(DisplayInterface, 1000 / DisplayInterface_framerate);
 
 // ctx.fillStyle = "red";
 // ctx.fillRect(400, 300, 150, 75)
+
+    </script>
+</body>
+</html>
