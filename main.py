@@ -50,14 +50,9 @@ def create_lua_environment(logger_filename):
 
 # scripts
 
-game_script = None
-player_script = None 
-def load_scripts():
-    global game_script, player_script
-    with open("scripts/game.lua", "r") as f:
-        game_script = f.read()
-    with open("scripts/player.lua", "r") as f:
-        player_script = f.read()
+def load_script(name):
+    with open(f"scripts/{name}.lua", "r") as f:
+        return f.read()
 
 
 
@@ -91,35 +86,37 @@ def visualize(lua_globals):
 
 
 
-def main():
-    print("loading script files")
-    load_scripts()
+class GameInstance:
+    def __init__(self, game_script, player_script):
+        self.game_script = game_script
+        self.player_script = player_script
 
-    print("loading lua environments")
-    player_lua, player_globals = create_lua_environment("scripts/player.log")
-    game_lua, game_globals = create_lua_environment("scripts/game.log")
+        self.game_lua, self.game_globals = create_lua_environment(f"scripts/game_{hash(game_script)}.log")
+        self.player_lua, self.player_globals = create_lua_environment(f"scripts/player_{hash(player_script)}.log")
 
-    game_globals.turn_end = lambda : visualize(game_globals)
-    game_lua.execute(game_script)
+        self.game_globals.turn_end = lambda : visualize(self.game_globals)
+        self.game_lua.execute(game_script)
 
-    def get_interface_function(func_name):
-        def out(*args):
-            return game_globals[func_name](*args)
-        return out
-    for func_name in game_globals["INTERFACE_FUNCTIONS"].values():
-        player_globals[func_name] = get_interface_function(func_name)
+        def get_interface_function(func_name):
+            def out(*args):
+                return self.game_globals[func_name](*args)
+            return out
+        for func_name in self.game_globals["INTERFACE_FUNCTIONS"].values():
+            self.player_globals[func_name] = get_interface_function(func_name)
 
+    def run_player(self):
+        visualize(self.game_globals)
 
-    visualize(game_globals)
+        # try:
+        self.player_lua.execute(self.player_script)
+        # except:
+        #     print(traceback.format_exc())
 
-    # try:
-    player_lua.execute(player_script)
-    # except:
-    #     print(traceback.format_exc())
-
-    while True:
-        visualize(game_globals)
-
+        # while True:
+        #     visualize(self.game_globals)
 
 
-main()
+
+# main()
+game = GameInstance(load_script("game"), load_script("player"))
+game.run_player()
