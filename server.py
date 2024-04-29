@@ -71,8 +71,10 @@ class MyServer(BaseHTTPRequestHandler):
                 sections[-1].append(lines[i])
                 i += 1
 
-        file_content = "\n".join(sections[1])
+        # print(json.dumps(lines, indent=2))
         # print(json.dumps(sections, indent=2))
+
+        file_content = "\n".join(sections[1])
 
         # with open("asdf.log", "w") as f:
         #     f.write(json.dumps(post_data.decode("utf-8").split("\r\n"), indent=2))
@@ -81,8 +83,8 @@ class MyServer(BaseHTTPRequestHandler):
 
         # Print the form data
         # print("Submitted Form Data:")
-        with open("asdf.json", "w") as f:
-            f.write(json.dumps(sections, indent=2))
+        # with open("asdf.json", "w") as f:
+        #     f.write(json.dumps(sections, indent=2))
         # with open("asdf.lua", "w") as f:
         #     f.write("\n".join(sections[1]))
         # filename = content[0].split(";")[1].split("=")[1][1:-1]
@@ -104,8 +106,11 @@ class MyServer(BaseHTTPRequestHandler):
         filename = form_data["filename"]
 
         script_hash = lua_environment.basic_hash(file_content)
-        savename = "scripts/" + script_hash
-        with open(savename + ".json", "w") as f:
+        savedir = "scripts/" + script_hash + "/"
+        if not os.path.exists(savedir):
+            os.mkdir(savedir)
+
+        with open(savedir + "info.json", "w") as f:
             f.write(json.dumps({
                 "filename": filename,
                 "script_type": script_type,
@@ -113,7 +118,7 @@ class MyServer(BaseHTTPRequestHandler):
                 "script_hash": script_hash,
                 "user": 0,
             }))
-        with open(savename + ".lua", "w") as f:
+        with open(savedir + "script.lua", "w") as f:
             f.write(file_content)
 
 
