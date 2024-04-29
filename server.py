@@ -2,6 +2,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import json
+import multiprocessing
+import time
 import traceback
 
 import lua_environment
@@ -77,9 +79,19 @@ class MyServer(BaseHTTPRequestHandler):
 
 
 
-if __name__ == "__main__":
+def main():
     try:
-        lua_environment.main()
+        p = multiprocessing.Process(target=lua_environment.main)
+        start_time = time.time()
+        p.start()
+        p.join(5)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("elapsed_time", elapsed_time)
+        if p.is_alive():
+            p.terminate()
+            # p.join()
+
     except:
         print(traceback.format_exc())
 
@@ -93,3 +105,5 @@ if __name__ == "__main__":
 
     webServer.server_close()
     print("Server stopped.")
+
+if __name__ == "__main__": main()
