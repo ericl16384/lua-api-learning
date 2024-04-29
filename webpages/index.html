@@ -38,7 +38,7 @@ async function DisplayInterface() {
         };
     }
 
-    fetch("fetchgameevents?" + new URLSearchParams({
+    fetch("fetch_game_events?" + new URLSearchParams({
         game: 0
     }))
         .then(response => response.json())

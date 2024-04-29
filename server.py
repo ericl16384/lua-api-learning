@@ -4,6 +4,7 @@ from urllib.parse import parse_qs
 
 import json
 import multiprocessing
+import os
 import time
 import traceback
 
@@ -22,62 +23,20 @@ server_port = 80
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
-        # if self.path == "/":
-        #     self.send_response(200)
-        #     self.send_header("Content-type", "text/html")
-        #     self.end_headers()
+        query = parse_qs(urlparse(self.path).query)
 
-        #     with open("index.html", "rb") as f:
-        #         self.wfile.write(f.read())
-
-        #     # self.wfile.write(bytes("<html><head><title>lua-api-learning</title></head>", "utf-8"))
-        #     # self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
-        #     # self.wfile.write(bytes("<body>", "utf-8"))
-        #     # self.wfile.write(bytes("<h1>This is an example web server for a Lua API game.</h1>", "utf-8"))
-
-
-        #     # self.wfile.write(bytes("<canvas id=\"drawCanvas\" width=\"1024\" height=\"576\" style=\"border:1px solid #000000;\">Sorry, you browser does not support canvas.</canvas>", "utf-8"))
-
-        #     # self.wfile.write(bytes("<script>", "utf-8"))
-        #     # with open("canvas_script.js", "rb") as f:
-        #     #     self.wfile.write(f.read())
-        #     #     # self.wfile.write(bytes("asdfghjkl", "utf-8"))
-        #     # self.wfile.write(bytes("</script>", "utf-8"))
-
-        #     # # display_interface = main.GameInstance.DisplayInterface()
-        #     # # display_interface.draw_rect(100, 200, 300, 400, "green")
-        #     # # self.wfile.write(bytes(display_interface.get_HTML_canvas(), "utf-8"))
-
-        #     # # display game.lua
-        #     # # self.wfile.write(bytes("<pre>", "utf-8"))
-        #     # # with open("scripts/game.lua", "rb") as f:
-        #     # #     self.wfile.write(f.read())
-        #     # # self.wfile.write(bytes("</pre>", "utf-8"))
-
-        #     # self.wfile.write(bytes("</body></html>", "utf-8"))
-
-        if self.path.startswith("/fetchgameevents?"):
-            query = parse_qs(urlparse(self.path).query)
-
-            # print(self.path)
-            # print(query)
-            # print()
-
+        if self.path.startswith("/fetch_game_events?"):
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
 
-            # display = lua_environment.GameInstance.DisplayInterface()
-            # display.draw_rect(10, 20, 30, 40, "black")
-            # display.draw_rect(20, 40, 60, 80, "yellow")
-            # display.sleep(2)
-            # display.draw_rect(30, 60, 90, 120, "red")
-
-            # lua_environment.main()
             with open("scripts/history.json", "r") as f:
                 events = json.loads(f.read())
 
             self.wfile.write(bytes(json.dumps(events), "utf-8"))
+
+        # elif self.path.startswith("/review_script?"):
+        #     print(query)
 
 
         elif self.path in url_filename_lookup:
@@ -90,6 +49,94 @@ class MyServer(BaseHTTPRequestHandler):
 
         else:
             self.send_response(404)
+
+    def do_POST(self):
+        content_length = int(self.headers["Content-Length"])
+        post_data = self.rfile.read(content_length)
+
+        # Parse the form data
+        # params = parse_qs(post_data.decode("utf-8"))
+
+        lines = post_data.decode("utf-8").split("\r\n")
+
+        sections = []
+        i = 0
+        while i < len(lines):
+            if lines[i].startswith("------WebKitFormBoundary"):
+                sections.append(lines[i:i+4])
+                sections.append([])
+                i += 4
+                continue
+            else:
+                sections[-1].append(lines[i])
+                i += 1
+
+        file_content = "\n".join(sections[1])
+        # print(json.dumps(sections, indent=2))
+
+        # with open("asdf.log", "w") as f:
+        #     f.write(json.dumps(post_data.decode("utf-8").split("\r\n"), indent=2))
+
+        # content = "".join(content).split("\n")
+
+        # Print the form data
+        # print("Submitted Form Data:")
+        with open("asdf.json", "w") as f:
+            f.write(json.dumps(sections, indent=2))
+        # with open("asdf.lua", "w") as f:
+        #     f.write("\n".join(sections[1]))
+        # filename = content[0].split(";")[1].split("=")[1][1:-1]
+
+        # input()
+
+        script_type = sections[2][3]
+
+        form_content = sections[0][1].split("; ")[1:]
+        form_data = {}
+        for data in form_content:
+            if i == 0:
+                continue
+
+            k, v = data.split("=")
+            v = v[1:-1]
+            form_data[k] = v
+        # print(form_data)
+        filename = form_data["filename"]
+
+        script_hash = lua_environment.basic_hash(file_content)
+        savename = "scripts/" + script_hash
+        with open(savename + ".json", "w") as f:
+            f.write(json.dumps({
+                "filename": filename,
+                "script_type": script_type,
+                "time": time.time(),
+                "script_hash": script_hash,
+                "user": 0,
+            }))
+        with open(savename + ".lua", "w") as f:
+            f.write(file_content)
+
+
+
+        # print("filename", filename)
+
+
+        # for key, value in params.items():
+        #     # print(key)
+        #     # print()
+        #     # print(value)
+        #     # print()
+        #     # print()
+        #     # print()
+        #     # # input()
+        #     print(json.dumps((key, value), indent=2))
+        # print()
+
+        # Send response back to the client
+        self.send_response(200)
+        # self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(b"Thank you for submitting the form!")
 
 
 def main():
