@@ -16,9 +16,8 @@ function DisplayInterface() {
     ctx.fillRect(DisplayInterface_frame, 300, 150, 75)
 
 
-    fetch("fetch_display?" + new URLSearchParams({
-        game: 0,
-        frame: DisplayInterface_frame,
+    fetch("fetchdata?" + new URLSearchParams({
+        game: 0
     }))
         .then(response => response.json())
         .then(data => console.log(data));

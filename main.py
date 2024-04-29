@@ -94,22 +94,22 @@ class GameInstance:
 
             self.events = []
 
-        def get_HTML_canvas(self, width=1024, height=576):
-            # self_hash = basic_hash(self)
+        # def get_HTML_canvas(self, width=1024, height=576):
+        #     # self_hash = basic_hash(self)
 
-            out = f"<canvas id='DisplayInterface' width='{width}' height='{height}' style='border:1px solid #000000;'>Sorry, you browser dones not support canvas.</canvas>"
-            out += "<script type='text/javascript'>"
-            out += f"var DisplayInterface_frame = 0;"
-            out += f"function DisplayInterface()"
-            out += "{"
-            out += "const canvas = document.getElementById('drawCanvas');"
-            out += "const ctx = canvas.getContext('2d');"
-            out += "DisplayInterface_frame++;"
-            out += "}"
-            out += f"DisplayInterface();"
-            out += f"window.setInterval(DisplayInterface, {1000 / self.framerate});"
-            out += "</script>"
-            return out
+        #     out = f"<canvas id='DisplayInterface' width='{width}' height='{height}' style='border:1px solid #000000;'>Sorry, you browser dones not support canvas.</canvas>"
+        #     out += "<script type='text/javascript'>"
+        #     out += f"var DisplayInterface_frame = 0;"
+        #     out += f"function DisplayInterface()"
+        #     out += "{"
+        #     out += "const canvas = document.getElementById('drawCanvas');"
+        #     out += "const ctx = canvas.getContext('2d');"
+        #     out += "DisplayInterface_frame++;"
+        #     out += "}"
+        #     out += f"DisplayInterface();"
+        #     out += f"window.setInterval(DisplayInterface, {1000 / self.framerate});"
+        #     out += "</script>"
+        #     return out
 
         def draw_rect(self, x, y, w, h, color):
             self.events.append(("draw_rect", x, y, w, h, color))

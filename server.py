@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
+import json
 
 # import main
 
@@ -43,16 +44,20 @@ class MyServer(BaseHTTPRequestHandler):
 
             # self.wfile.write(bytes("</body></html>", "utf-8"))
 
-        elif self.path.startswith("/fetch_display?"):
-            print("YAY")
-            print(self.path)
-            print(parse_qs(urlparse(self.path).query))
+        elif self.path.startswith("/fetchdata?"):
+            query = parse_qs(urlparse(self.path).query)
+
+            # print(self.path)
+            # print(query)
+            # print()
 
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
 
-            self.wfile.write(bytes("hello world", "utf-8"))
+            self.wfile.write(bytes(json.dumps([
+                "testing", "todo"
+            ]), "utf-8"))
 
         else:
             self.send_response(404)
