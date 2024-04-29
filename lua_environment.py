@@ -1,4 +1,4 @@
-import hashlib, logging, traceback
+import hashlib, logging
 
 # logging_formatter = logging.Formatter("%(asctime)s: %(message)s")
 logging_formatter = logging.Formatter("%(message)s")
@@ -58,30 +58,30 @@ def load_script(name):
 
 # start a little game
 
-import visualization
-visualization.init()
+# import visualization
+# visualization.init()
 
-def visualize(lua_globals):
-    # map = {}
-    # for k, v in lua_globals.map.items():
-    # # for k, v in lua_globals.known_map.items():
-    #     # print(k, v)
-    #     xy = k.split(",")
-    #     x = int(xy[0])
-    #     y = int(xy[1])
-    #     map[x, y] = v
-    #     # input()
-    # # visualization.draw_map(map, pos, facing)
+# def visualize(lua_globals):
+#     # map = {}
+#     # for k, v in lua_globals.map.items():
+#     # # for k, v in lua_globals.known_map.items():
+#     #     # print(k, v)
+#     #     xy = k.split(",")
+#     #     x = int(xy[0])
+#     #     y = int(xy[1])
+#     #     map[x, y] = v
+#     #     # input()
+#     # # visualization.draw_map(map, pos, facing)
 
-    if lua_globals.fog_of_war:
-        map = lua_globals.known_map
-    else:
-        map = lua_globals.map
+#     if lua_globals.fog_of_war:
+#         map = lua_globals.known_map
+#     else:
+#         map = lua_globals.map
 
-    visualization.draw_map(map, (
-        lua_globals.units[1].x, lua_globals.units[1].y
-    # ), facing)
-    ), 0)
+#     visualization.draw_map(map, (
+#         lua_globals.units[1].x, lua_globals.units[1].y
+#     # ), facing)
+#     ), 0)
 
 
 def basic_hash(x):
@@ -90,7 +90,7 @@ def basic_hash(x):
 class GameInstance:
     class DisplayInterface:
         def __init__(self):
-            self.framerate = 1
+            # self.framerate = 1
 
             self.events = []
 
@@ -111,23 +111,58 @@ class GameInstance:
         #     out += "</script>"
         #     return out
 
-        def draw_rect(self, x, y, w, h, color):
-            self.events.append(("draw_rect", x, y, w, h, color))
-            self.js += f"ctx.fillStyle = '{color}';"
-            self.js += f"ctx.fillRect({x}, {y}, {w}, {h});"
+        def clear_display(self):
+            self.events.append(("clear_display",))
 
-        # def add_delay()
+        def draw_rect(self, x, y, w, h, color):
+            x = float(x)
+            y = float(y)
+            w = float(w)
+            h = float(h)
+
+
+            # TEMPORARY
+            def transform(pos, translate=True):
+                tile_size = 20
+                # if tile_offset:
+                #     pos = [i-0.5 for i in pos]
+                center = (1024/2, 576/2)
+                pos = (
+                    pos[0] * tile_size,
+                    pos[1] * tile_size
+                )
+                if translate:
+                    pos = (
+                        pos[0] + center[0],
+                        pos[1] + center[1]
+                    )
+                return pos
+            x, y = transform((x, y))
+            w, h = transform((w, h), False)
+
+
+            self.events.append(("draw_rect", x, y, w, h, color))
+
+        def sleep(self, seconds):
+            self.events.append(("sleep", seconds*1000))
 
     def __init__(self, game_script, player_script):
         self.game_script = game_script
         self.player_script = player_script
 
-        self.game_lua, self.game_globals = create_lua_environment(f"scripts/game_{basic_hash(game_script)}.log")
-        self.player_lua, self.player_globals = create_lua_environment(f"scripts/player_{basic_hash(player_script)}.log")
+        self.game_lua, self.game_globals = create_lua_environment("scripts/game.log")
+        self.player_lua, self.player_globals = create_lua_environment("scripts/player.log")
 
         # draw = []
 
-        self.game_globals.turn_end = lambda : visualize(self.game_globals)
+        # self.game_globals.turn_end = lambda : visualize(self.game_globals)
+        # self.game_globals.turn_end = lambda : input("end turn")
+
+        self.display_interface = self.DisplayInterface()
+        self.game_globals.clear_display = self.display_interface.clear_display
+        self.game_globals.draw_rect = self.display_interface.draw_rect
+        self.game_globals.sleep = self.display_interface.sleep
+
         self.game_lua.execute(game_script)
 
         def get_interface_function(func_name):
@@ -138,7 +173,7 @@ class GameInstance:
             self.player_globals[func_name] = get_interface_function(func_name)
 
     def run_player(self):
-        visualize(self.game_globals)
+        # visualize(self.game_globals)
 
         # try:
         self.player_lua.execute(self.player_script)
@@ -150,7 +185,13 @@ class GameInstance:
 
 
 
-# main()
-if __name__ == "__main__":
+def main():
     game = GameInstance(load_script("game"), load_script("player"))
     game.run_player()
+
+
+    import json
+    with open("scripts/history.json", "w") as f:
+        f.write(json.dumps(game.display_interface.events))
+
+if __name__ == "__main__": main()

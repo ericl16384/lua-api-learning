@@ -2,30 +2,52 @@
 <head><title>lua-api-learning</title></head>
 <body>
     <h1>This is an example web server for a Lua API game.</h1>
-    <canvas id="drawCanvas" width="1024" height="576" style="border:1px solid #000000;">Sorry, you browser does not support canvas.</canvas>
+    <canvas id="drawCanvas" width="1024" height="576" style="background-color:#ffffff; border:2px solid #000000;">
+        Sorry, you browser does not support canvas.
+    </canvas>
+
     <script type="text/javascript">
 
-var DisplayInterface_frame = 0;
-var DisplayInterface_framerate = 25;
+// https://stackoverflow.com/questions/951021/what-is-the-javascript-version-of-sleepW
+var sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function DisplayInterface() {
-    canvas = document.getElementById("drawCanvas");
-    ctx = canvas.getContext("2d");
+const canvas = document.getElementById("drawCanvas");
+const ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = "red";
-    ctx.fillRect(DisplayInterface_frame, 300, 150, 75)
+// var DisplayInterface_frame = 0;
+// var DisplayInterface_framerate = 1;
 
 
-    fetch("fetchdata?" + new URLSearchParams({
+async function DisplayInterface() {
+    // ctx.clearRect()
+    async function DisplayInterfaceEvents(events) {
+        for (let i=0;i<events.length;i++) {
+            e = events[i];
+            console.log(e);
+            if(e[0] == "clear_display") {
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+            } else if (e[0] == "draw_rect") {
+                ctx.fillStyle = e[5];
+                ctx.fillRect(e[1], e[2], e[3], e[4]);
+            } else if(e[0] == "sleep") {
+                await sleep(e[1]);
+            } else {
+                console.log("UNKNOWN", e)
+            }
+        };
+    }
+
+    fetch("fetchgameevents?" + new URLSearchParams({
         game: 0
     }))
         .then(response => response.json())
-        .then(data => console.log(data));
+        // .then(data => console.log(data));
+        .then(data => DisplayInterfaceEvents(data))
 
-    DisplayInterface_frame++;
+    // DisplayInterface_frame++;
 }
 DisplayInterface();
-window.setInterval(DisplayInterface, 1000 / DisplayInterface_framerate);
+// window.setInterval(DisplayInterface, 1000 / DisplayInterface_framerate);
 
 // ctx.fillStyle = "red";
 // ctx.fillRect(400, 300, 150, 75)

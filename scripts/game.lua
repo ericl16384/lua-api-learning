@@ -257,25 +257,25 @@ end
 function move_up()
     out = move(units[1], units[1].x, units[1].y-1)--units[1].y+1)
     print("move_up")
-    turn_end()
+    display()
     return out
 end
 function move_left()
     out = move(units[1], units[1].x-1, units[1].y)
     print("move_left")
-    turn_end()
+    display()
     return out
 end
 function move_down()
     out = move(units[1], units[1].x, units[1].y+1)--units[1].y-1)
     print("move_left")
-    turn_end()
+    display()
     return out
 end
 function move_right()
     out = move(units[1], units[1].x+1, units[1].y)
     print("move_right")
-    turn_end()
+    display()
     return out
 end
 
@@ -308,3 +308,31 @@ INTERFACE_FUNCTIONS = {"move_up", "move_left", "move_down", "move_right"}--, "ge
 
 
 fog_of_war = false
+
+
+
+
+
+
+function display()
+    clear_display()
+
+    color_map = {
+        empty="lightgrey",
+        wall="black",
+        goal="rgb(0,255,0)"
+    }
+
+    for k,v in pairs(map) do
+        pos = {}
+        for i in string.gmatch(k, "([^,]+)") do
+            table.insert(pos, i)
+        end
+        draw_rect(pos[1], pos[2], 1, 1, color_map[v])
+    end
+
+    draw_rect(units[1].x+0.2, units[1].y+0.2, 0.6, 0.6, "blue")
+
+    sleep(1)
+end
+-- display()

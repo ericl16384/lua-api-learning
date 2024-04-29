@@ -6,7 +6,7 @@
 --     coroutine.yield()
 -- end)
 
-while true do
+for i=1,3 do
     print("right")
     while move_right() do print("right") end
 

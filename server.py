@@ -2,6 +2,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import json
+import traceback
+
+import lua_environment
 
 # import main
 
@@ -44,7 +47,7 @@ class MyServer(BaseHTTPRequestHandler):
 
             # self.wfile.write(bytes("</body></html>", "utf-8"))
 
-        elif self.path.startswith("/fetchdata?"):
+        elif self.path.startswith("/fetchgameevents?"):
             query = parse_qs(urlparse(self.path).query)
 
             # print(self.path)
@@ -55,9 +58,17 @@ class MyServer(BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
 
-            self.wfile.write(bytes(json.dumps([
-                "testing", "todo"
-            ]), "utf-8"))
+            # display = lua_environment.GameInstance.DisplayInterface()
+            # display.draw_rect(10, 20, 30, 40, "black")
+            # display.draw_rect(20, 40, 60, 80, "yellow")
+            # display.sleep(2)
+            # display.draw_rect(30, 60, 90, 120, "red")
+
+            # lua_environment.main()
+            with open("scripts/history.json", "r") as f:
+                events = json.loads(f.read())
+
+            self.wfile.write(bytes(json.dumps(events), "utf-8"))
 
         else:
             self.send_response(404)
@@ -67,6 +78,11 @@ class MyServer(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    try:
+        lua_environment.main()
+    except:
+        print(traceback.format_exc())
+
     webServer = HTTPServer((hostName, serverPort), MyServer)
     print("Server started http://%s:%s" % (hostName, serverPort))
 
