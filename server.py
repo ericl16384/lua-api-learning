@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
+
 import json
 import multiprocessing
 import time
@@ -8,48 +9,54 @@ import traceback
 
 import lua_environment
 
-# import main
 
-hostName = "localhost"
-serverPort = 80
+
+url_filename_lookup = {
+    "/": "webpages/index.html",
+    "/upload_script": "webpages/upload_script.html",
+}
+
+
+host_name = "localhost"
+server_port = 80
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == "/":
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
+        # if self.path == "/":
+        #     self.send_response(200)
+        #     self.send_header("Content-type", "text/html")
+        #     self.end_headers()
 
-            with open("index.html", "rb") as f:
-                self.wfile.write(f.read())
+        #     with open("index.html", "rb") as f:
+        #         self.wfile.write(f.read())
 
-            # self.wfile.write(bytes("<html><head><title>lua-api-learning</title></head>", "utf-8"))
-            # self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
-            # self.wfile.write(bytes("<body>", "utf-8"))
-            # self.wfile.write(bytes("<h1>This is an example web server for a Lua API game.</h1>", "utf-8"))
+        #     # self.wfile.write(bytes("<html><head><title>lua-api-learning</title></head>", "utf-8"))
+        #     # self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
+        #     # self.wfile.write(bytes("<body>", "utf-8"))
+        #     # self.wfile.write(bytes("<h1>This is an example web server for a Lua API game.</h1>", "utf-8"))
 
 
-            # self.wfile.write(bytes("<canvas id=\"drawCanvas\" width=\"1024\" height=\"576\" style=\"border:1px solid #000000;\">Sorry, you browser does not support canvas.</canvas>", "utf-8"))
+        #     # self.wfile.write(bytes("<canvas id=\"drawCanvas\" width=\"1024\" height=\"576\" style=\"border:1px solid #000000;\">Sorry, you browser does not support canvas.</canvas>", "utf-8"))
 
-            # self.wfile.write(bytes("<script>", "utf-8"))
-            # with open("canvas_script.js", "rb") as f:
-            #     self.wfile.write(f.read())
-            #     # self.wfile.write(bytes("asdfghjkl", "utf-8"))
-            # self.wfile.write(bytes("</script>", "utf-8"))
+        #     # self.wfile.write(bytes("<script>", "utf-8"))
+        #     # with open("canvas_script.js", "rb") as f:
+        #     #     self.wfile.write(f.read())
+        #     #     # self.wfile.write(bytes("asdfghjkl", "utf-8"))
+        #     # self.wfile.write(bytes("</script>", "utf-8"))
 
-            # # display_interface = main.GameInstance.DisplayInterface()
-            # # display_interface.draw_rect(100, 200, 300, 400, "green")
-            # # self.wfile.write(bytes(display_interface.get_HTML_canvas(), "utf-8"))
+        #     # # display_interface = main.GameInstance.DisplayInterface()
+        #     # # display_interface.draw_rect(100, 200, 300, 400, "green")
+        #     # # self.wfile.write(bytes(display_interface.get_HTML_canvas(), "utf-8"))
 
-            # # display game.lua
-            # # self.wfile.write(bytes("<pre>", "utf-8"))
-            # # with open("scripts/game.lua", "rb") as f:
-            # #     self.wfile.write(f.read())
-            # # self.wfile.write(bytes("</pre>", "utf-8"))
+        #     # # display game.lua
+        #     # # self.wfile.write(bytes("<pre>", "utf-8"))
+        #     # # with open("scripts/game.lua", "rb") as f:
+        #     # #     self.wfile.write(f.read())
+        #     # # self.wfile.write(bytes("</pre>", "utf-8"))
 
-            # self.wfile.write(bytes("</body></html>", "utf-8"))
+        #     # self.wfile.write(bytes("</body></html>", "utf-8"))
 
-        elif self.path.startswith("/fetchgameevents?"):
+        if self.path.startswith("/fetchgameevents?"):
             query = parse_qs(urlparse(self.path).query)
 
             # print(self.path)
@@ -72,11 +79,17 @@ class MyServer(BaseHTTPRequestHandler):
 
             self.wfile.write(bytes(json.dumps(events), "utf-8"))
 
+
+        elif self.path in url_filename_lookup:
+            with open(url_filename_lookup[self.path], "rb") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(content)
+
         else:
             self.send_response(404)
-            # self.send_header("Content-type", "text/html")
-            self.end_headers()
-
 
 
 def main():
@@ -95,15 +108,15 @@ def main():
     except:
         print(traceback.format_exc())
 
-    webServer = HTTPServer((hostName, serverPort), MyServer)
-    print("Server started http://%s:%s" % (hostName, serverPort))
+    web_server = HTTPServer((host_name, server_port), MyServer)
+    print("Server started http://%s:%s" % (host_name, server_port))
 
     try:
-        webServer.serve_forever()
+        web_server.serve_forever()
     except KeyboardInterrupt:
         pass
 
-    webServer.server_close()
+    web_server.server_close()
     print("Server stopped.")
 
 if __name__ == "__main__": main()
