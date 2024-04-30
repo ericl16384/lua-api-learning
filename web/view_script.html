@@ -1,0 +1,63 @@
+<html>
+<head>
+    <title>lua-api-learning</title>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
+        pre {
+            background-color:#eeeeee;
+            border:1px solid #000000;
+        }
+    </style>
+</head>
+<body>
+    <h1>lua-api-learning</h1>
+    <p><a href="/">Return to home</a></p>
+
+    <h2>View script</h2>
+
+    <table>
+        <tbody id="headerTableBody"></tbody>
+    </table><br>
+
+    <pre><code id="codeBlock"></code></pre>
+
+    <script type="text/javascript">
+
+fetch("fetch_script" + document.location.search)
+    .then(response => response.json())
+    .then(data => {
+        // document.getElementById("headerBlock").innerText = JSON.stringify(data["info"], space=2);
+        document.getElementById("codeBlock").innerText = data["script"];
+
+
+        for (const [key, value] of Object.entries(data["info"])) {
+            var data_row = document.createElement("tr");
+            document.getElementById("headerTableBody").appendChild(data_row);
+
+            var key_e = document.createElement("td");
+            key_e.innerText = key;
+            data_row.appendChild(key_e);
+
+            var value_e = document.createElement("td");
+            value_e.innerText = value;
+            data_row.appendChild(value_e);
+        }
+    })
+
+    </script>
+</body>
+</html>

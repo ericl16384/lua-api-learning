@@ -116,10 +116,6 @@ class MyServer(BaseHTTPRequestHandler):
             pass
 
         elif path == "/fetch_replay_events":
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-
             replay_id = query.get("id")
             if replay_id:
                 with open(f"replays/{replay_id[0]}.json", "r") as f:
@@ -129,13 +125,11 @@ class MyServer(BaseHTTPRequestHandler):
 
             # print(events)
 
+            self.send_response(200)
+            self.end_headers()
             self.wfile.write(bytes(json.dumps(events), "utf-8"))
 
         elif path == "/fetch_replay_table":
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-
             lines = []
             with open("replays/__index__.log", "r") as f:
                 lines = f.readlines()
@@ -157,9 +151,27 @@ class MyServer(BaseHTTPRequestHandler):
 
             # print(json.dumps(out, indent=2))
 
+            self.send_response(200)
+            self.end_headers()
             self.wfile.write(bytes(json.dumps(out), "utf-8"))
 
             # self.wfile.(bytes(json.dumps(replays), "utf-8"))
+        
+        elif path == "/fetch_script":
+            directory = "scripts/" + query.get("id")[0] + "/"
+            with open(directory + "info.json", "r") as f:
+                info = json.loads(f.read())
+            with open(directory + "script.lua", "r") as f:
+                script = f.read()
+
+            out = {
+                "info": info,
+                "script": script
+            }
+
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps(out), "utf-8"))
 
         # elif self.path.startswith("/review_script?"):
         #     print(query)
