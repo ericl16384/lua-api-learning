@@ -103,15 +103,31 @@ class MyServer(BaseHTTPRequestHandler):
         path = urlparse_path.path
         query = parse_qs(urlparse_path.query)
 
-        if path == "/fetch_game_events":
+        if path == "/fetch_replay_events":
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
 
-            with open("scripts/replay.json", "r") as f:
-                events = json.loads(f.read())
+            replay_id = query.get("replay")
+            if replay_id:
+                with open(f"replays/{replay_id[0]}.json", "r") as f:
+                    events = json.loads(f.read())
+            else:
+                events = None
+            
+            # print(events)
 
             self.wfile.write(bytes(json.dumps(events), "utf-8"))
+
+        elif path == "/fetch_replay_table":
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+
+            with open("replays/__index__.log", "rb") as f:
+                self.wfile.write(f.read())
+
+            # self.wfile.(bytes(json.dumps(replays), "utf-8"))
 
         # elif self.path.startswith("/review_script?"):
         #     print(query)
@@ -146,20 +162,20 @@ class MyServer(BaseHTTPRequestHandler):
 
 
 def main():
-    try:
-        p = multiprocessing.Process(target=lua_environment.main)
-        start_time = time.time()
-        p.start()
-        p.join(5)
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        print("elapsed_time", elapsed_time)
-        if p.is_alive():
-            p.terminate()
-            # p.join()
+    # try:
+    #     p = multiprocessing.Process(target=lua_environment.main)
+    #     start_time = time.time()
+    #     p.start()
+    #     p.join(5)
+    #     end_time = time.time()
+    #     elapsed_time = end_time - start_time
+    #     print("elapsed_time", elapsed_time)
+    #     if p.is_alive():
+    #         p.terminate()
+    #         # p.join()
 
-    except:
-        print(traceback.format_exc())
+    # except:
+    #     print(traceback.format_exc())
 
     web_server = HTTPServer((host_name, server_port), MyServer)
     print("Server started http://%s:%s" % (host_name, server_port))

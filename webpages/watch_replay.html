@@ -30,7 +30,7 @@
     <h1>lua-api-learning</h1>
     <p><a href="/">Return to home</a></p>
 
-    <table>
+    <table id="replayTable">
         <tr>
             <th>Replay</th>
             <th>Game</th>
@@ -64,6 +64,15 @@ const ctx = canvas.getContext("2d");
 // var DisplayInterface_framerate = 1;
 
 
+function abbreviate_text(text, length, end="...") {
+    if(text.length + end.length > length) {
+        return text.slice(0, length - end.length) + end;
+    } else {
+        return text;
+    }
+}
+
+
 async function DisplayInterface() {
     // ctx.clearRect()
     async function DisplayInterfaceEvents(events) {
@@ -83,13 +92,23 @@ async function DisplayInterface() {
         };
     }
 
-    // fetch("fetch_game_events?" + new URLSearchParams({
+    async function DisplayInterface(data) {
+        if(data == null) {
+            ctx.font = "50px Arial";
+            ctx.fillText("No replay selected. Please go back.", 10, 80);
+            return;
+        }
+
+        await DisplayInterfaceEvents(data["events"]);
+    }
+
+    // fetch("fetch_replay_events?" + new URLSearchParams({
     //     game: 0
     // }))
-    fetch("fetch_game_events" + document.location.search)
+    fetch("fetch_replay_events" + document.location.search)
         .then(response => response.json())
         // .then(data => console.log(data));
-        .then(data => DisplayInterfaceEvents(data))
+        .then(data => DisplayInterface(data))
 
     // DisplayInterface_frame++;
 }

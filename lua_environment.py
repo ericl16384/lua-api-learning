@@ -1,4 +1,4 @@
-import hashlib, logging
+import json, hashlib, logging, os, time
 
 # logging_formatter = logging.Formatter("%(asctime)s: %(message)s")
 logging_formatter = logging.Formatter("%(message)s")
@@ -84,15 +84,67 @@ def load_script(name):
 #     ), 0)
 
 
+def refresh_replays_index(replays_directory):
+    index_filename = "__index__.log"
+    replays_directory_index = replays_directory + index_filename
+
+    old_replays = set()
+    with open(replays_directory_index, "r") as f:
+        for l in f.readlines():
+            old_replays.add(json.loads(l)["replay_hash"])
+
+    new_replays = []
+    for filename in os.listdir(replays_directory):
+        filepath = replays_directory + filename
+
+        if not os.path.isfile(filepath):
+            continue
+
+        if filename == index_filename:
+            continue
+
+        if filename.endswith(".json"):
+            with open(filepath, "r") as f:
+                info = json.loads(f.read())["info"]
+                if info["replay_hash"] in old_replays:
+                    continue
+                new_replays.append(info)
+
+    with open(replays_directory_index, "a") as f:
+        for replay in new_replays:
+            f.write(json.dumps(replay) + "\n")
+
+
 def basic_hash(x):
+    if isinstance(x, (dict, list)):
+        x = json.dumps(x)
     return hashlib.sha256(bytes(x, "utf-8")).hexdigest()
 
 class GameInstance:
     class DisplayInterface:
-        def __init__(self):
+        def __init__(self, game_hash, player_hash):
             # self.framerate = 1
 
+            self.game_hash = game_hash
+            self.player_hash = player_hash
+
             self.events = []
+
+        def save_as_replay(self, replays_directory):
+            filename = f"{replays_directory}{basic_hash(self.events)}.json"
+            out = {
+                "info": {
+                    "replay_hash": basic_hash(self.events),
+                    "game_hash": self.game_hash,
+                    "player_hash": self.player_hash,
+                    "save_time": time.time()
+                },
+                "events": self.events
+            }
+            with open(filename, "w") as f:
+                f.write(json.dumps(out))
+
+            refresh_replays_index(replays_directory)
 
         # def get_HTML_canvas(self, width=1024, height=576):
         #     # self_hash = basic_hash(self)
@@ -158,7 +210,7 @@ class GameInstance:
         # self.game_globals.turn_end = lambda : visualize(self.game_globals)
         # self.game_globals.turn_end = lambda : input("end turn")
 
-        self.display_interface = self.DisplayInterface()
+        self.display_interface = self.DisplayInterface(basic_hash(self.game_script), basic_hash(self.player_script))
         self.game_globals.clear_display = self.display_interface.clear_display
         self.game_globals.draw_rect = self.display_interface.draw_rect
         self.game_globals.sleep = self.display_interface.sleep
@@ -185,13 +237,18 @@ class GameInstance:
 
 
 
-def main():
-    game = GameInstance(load_script("game"), load_script("player"))
+def run_new_game(game_script, player_script):
+    game = GameInstance(game_script, player_script)
     game.run_player()
 
+    game.display_interface.save_as_replay("replays/")
 
-    import json
-    with open("scripts/replay.json", "w") as f:
-        f.write(json.dumps(game.display_interface.events))
+    # events = game.display_interface.events
+
+    # with open(f"replays/{basic_hash(events)}.json", "w") as f:
+    #     f.write(json.dumps(events))
+
+def main():
+    run_new_game(load_script("game"), load_script("player"))
 
 if __name__ == "__main__": main()

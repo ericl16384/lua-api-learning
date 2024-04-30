@@ -24,19 +24,50 @@
     <p><a href="/upload_script">Upload your own script!</a></p>
 
     <h2>Watch a saved game</h2>
-    <table>
+    <table id="replayTable">
         <tr>
             <th>Replay</th>
             <th>Game</th>
             <th>Player</th>
             <th>Time</th>
         </tr>
-        <tr>
-            <td>loading...</td>
-            <td>loading...</td>
-            <td>loading...</td>
-            <td>loading...</td>
-        </tr>
     </table>
+
+    <script>
+
+
+
+var table_rows = document.getElementById("replayTable").children[0].children;
+var header_row = table_rows[0];
+
+function create_hash_link(prefix, hash, max_length=15) {
+    link = document.createElement("a");
+    link.href = prefix + hash;
+    link.appendChild(document.createTextNode(abbreviate_text(hash, max_length)));
+    return link;
+}
+
+fetch("fetch_replay_table")
+    .then(response => console.log(response));
+
+fetch("fetch_replay_table")
+    .then(response => response.json())
+    .then(data => {
+        var data_row = document.createElement("tr");
+        var item = document.createElement("td");
+        item.appendChild(create_hash_link("watch_replay?replay=", info["replay_hash"]))
+        console.log(data_row);
+    });
+
+// var info_row = table_rows[1].children;
+
+// var info = data["info"];
+// info_row[0].innerText = "";
+// info_row[0].appendChild(create_hash_link("/replays/watch_replay?replay=", info["replay_hash"]));
+// info_row[1].innerHTML = abbreviate_text(info["game_hash"], 15);
+// info_row[2].innerHTML = abbreviate_text(info["player_hash"], 15);
+// info_row[3].innerHTML = new Date(info["save_time"] * 1000);
+
+    </script>
 </body>
 </html>
