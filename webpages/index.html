@@ -24,21 +24,30 @@
     <p><a href="/upload_script">Upload your own script!</a></p>
 
     <h2>Watch a saved game</h2>
-    <table id="replayTable">
-        <tr>
-            <th>Replay</th>
-            <th>Game</th>
-            <th>Player</th>
-            <th>Time</th>
-        </tr>
+    <table>
+        <thead>
+            <tr>
+                <th>Replay</th>
+                <th>Game</th>
+                <th>Player</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="replayTableBody"></tbody>
     </table>
 
     <script>
 
 
+var table_rows = document.getElementById("replayTableBody");
 
-var table_rows = document.getElementById("replayTable").children[0].children;
-var header_row = table_rows[0];
+function abbreviate_text(text, length, end="...") {
+    if(text.length + end.length > length) {
+        return text.slice(0, length - end.length) + end;
+    } else {
+        return text;
+    }
+}
 
 function create_hash_link(prefix, hash, max_length=15) {
     link = document.createElement("a");
@@ -47,16 +56,35 @@ function create_hash_link(prefix, hash, max_length=15) {
     return link;
 }
 
-fetch("fetch_replay_table")
-    .then(response => console.log(response));
-
-fetch("fetch_replay_table")
+fetch("fetch_replay_table?count=100")
     .then(response => response.json())
     .then(data => {
-        var data_row = document.createElement("tr");
-        var item = document.createElement("td");
-        item.appendChild(create_hash_link("watch_replay?replay=", info["replay_hash"]))
-        console.log(data_row);
+        data.forEach(element => {
+            var data_row = document.createElement("tr");
+            table_rows.appendChild(data_row);
+
+            var replay = document.createElement("td");
+            data_row.appendChild(replay);
+            var link = create_hash_link("watch_replay?id=", element["replay_hash"]);
+            replay.appendChild(link);
+
+            var game = document.createElement("td");
+            data_row.appendChild(game);
+            var link = create_hash_link("view_game?id=", element["game_hash"]);
+            game.appendChild(link);
+
+            var player = document.createElement("td");
+            data_row.appendChild(player);
+            var link = create_hash_link("view_player?id=", element["player_hash"]);
+            player.appendChild(link);
+
+            var time = document.createElement("td");
+            data_row.appendChild(time);
+            var text = document.createTextNode(new Date(element["save_time"] * 1000));
+            time.appendChild(text);
+
+            // console.log(data_row);
+        });
     });
 
 // var info_row = table_rows[1].children;

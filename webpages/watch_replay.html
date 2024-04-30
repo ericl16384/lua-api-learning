@@ -30,19 +30,17 @@
     <h1>lua-api-learning</h1>
     <p><a href="/">Return to home</a></p>
 
-    <table id="replayTable">
-        <tr>
-            <th>Replay</th>
-            <th>Game</th>
-            <th>Player</th>
-            <th>Time</th>
-        </tr>
-        <tr>
-            <td>loading...</td>
-            <td>loading...</td>
-            <td>loading...</td>
-            <td>loading...</td>
-        </tr>
+    <h2>Saved game</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Replay</th>
+                <th>Game</th>
+                <th>Player</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="replayTableBody"></tbody>
     </table><br>
 
     <canvas id="drawCanvas" width="1024" height="576">
@@ -55,6 +53,54 @@
 
 
 
+
+function addReplayTableRows(info_rows) {
+    function abbreviate_text(text, length, end="...") {
+        if(text.length + end.length > length) {
+            return text.slice(0, length - end.length) + end;
+        } else {
+            return text;
+        }
+    }
+
+    function create_hash_link(prefix, hash, max_length=15) {
+        link = document.createElement("a");
+        link.href = prefix + hash;
+        link.appendChild(document.createTextNode(abbreviate_text(hash, max_length)));
+        return link;
+    }
+
+    var table_rows = document.getElementById("replayTableBody");
+
+    info_rows.forEach(element => {
+        var data_row = document.createElement("tr");
+        table_rows.appendChild(data_row);
+
+        var replay = document.createElement("td");
+        data_row.appendChild(replay);
+        var link = create_hash_link("watch_replay?id=", element["replay_hash"]);
+        replay.appendChild(link);
+
+        var game = document.createElement("td");
+        data_row.appendChild(game);
+        var link = create_hash_link("view_game?id=", element["game_hash"]);
+        game.appendChild(link);
+
+        var player = document.createElement("td");
+        data_row.appendChild(player);
+        var link = create_hash_link("view_player?id=", element["player_hash"]);
+        player.appendChild(link);
+
+        var time = document.createElement("td");
+        data_row.appendChild(time);
+        var text = document.createTextNode(new Date(element["save_time"] * 1000));
+        time.appendChild(text);
+    });
+}
+
+
+
+
 var sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const canvas = document.getElementById("drawCanvas");
@@ -64,21 +110,13 @@ const ctx = canvas.getContext("2d");
 // var DisplayInterface_framerate = 1;
 
 
-function abbreviate_text(text, length, end="...") {
-    if(text.length + end.length > length) {
-        return text.slice(0, length - end.length) + end;
-    } else {
-        return text;
-    }
-}
-
 
 async function DisplayInterface() {
     // ctx.clearRect()
     async function DisplayInterfaceEvents(events) {
         for (let i=0;i<events.length;i++) {
             e = events[i];
-            console.log(e);
+            // console.log(e);
             if(e[0] == "clear_display") {
                 ctx.clearRect(0, 0, canvas.width, canvas.height)
             } else if (e[0] == "draw_rect") {
@@ -95,9 +133,11 @@ async function DisplayInterface() {
     async function DisplayInterface(data) {
         if(data == null) {
             ctx.font = "50px Arial";
-            ctx.fillText("No replay selected. Please go back.", 10, 80);
+            ctx.fillText("No replay data. Please go back.", 10, 80);
             return;
         }
+
+        addReplayTableRows([data["info"]]);
 
         await DisplayInterfaceEvents(data["events"]);
     }

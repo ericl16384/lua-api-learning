@@ -108,13 +108,13 @@ class MyServer(BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
 
-            replay_id = query.get("replay")
+            replay_id = query.get("id")
             if replay_id:
                 with open(f"replays/{replay_id[0]}.json", "r") as f:
                     events = json.loads(f.read())
             else:
                 events = None
-            
+
             # print(events)
 
             self.wfile.write(bytes(json.dumps(events), "utf-8"))
@@ -124,8 +124,28 @@ class MyServer(BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
 
-            with open("replays/__index__.log", "rb") as f:
-                self.wfile.write(f.read())
+            lines = []
+            with open("replays/__index__.log", "r") as f:
+                lines = f.readlines()
+
+            lines = [json.loads(i) for i in lines]
+
+            count = query.get("count")[0]
+            if count.isdigit():
+                count = int(count)
+            else:
+                count = 2*16
+
+            if count >= len(lines):
+                out = lines
+            else:
+                out = lines[-count:]
+
+            out = list(reversed(out))
+
+            print(json.dumps(out, indent=2))
+
+            self.wfile.write(bytes(json.dumps(out), "utf-8"))
 
             # self.wfile.(bytes(json.dumps(replays), "utf-8"))
 
