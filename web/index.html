@@ -1,0 +1,60 @@
+<html>
+<head>
+    <title>lua-api-learning</title>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>lua-api-learning</h1>
+    <p><a href="/upload_script.html">Upload your own script!</a></p>
+
+    <h2>Watch a saved game</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Replay</th>
+                <th>Game</th>
+                <th>Player</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="replayTableBody"></tbody>
+    </table>
+
+    <script src="replayTable.js"></script>
+    <script>
+
+
+
+
+fetch("fetch_replay_table?count=100")
+    .then(response => response.json())
+    .then(data => addReplayTableRows(data));
+
+// var info_row = table_rows[1].children;
+
+// var info = data["info"];
+// info_row[0].innerText = "";
+// info_row[0].appendChild(create_hash_link("/replays/watch_replay?replay=", info["replay_hash"]));
+// info_row[1].innerHTML = abbreviate_text(info["game_hash"], 15);
+// info_row[2].innerHTML = abbreviate_text(info["player_hash"], 15);
+// info_row[3].innerHTML = new Date(info["save_time"] * 1000);
+
+    </script>
+</body>
+</html>

@@ -14,8 +14,9 @@ import lua_environment
 
 url_filename_lookup = {
     "/": "webpages/index.html",
-    "/upload_script": "webpages/upload_script.html",
-    "/watch_replay": "webpages/watch_replay.html",
+    # "/upload_script": "webpages/upload_script.html",
+    # "/watch_replay": "webpages/watch_replay.html",
+    # # "/webpages/replayTable.js": "webpages/replayTable.js"
 }
 
 def handle_upload_script(request_handler):
@@ -58,6 +59,8 @@ def handle_upload_script(request_handler):
 
     script_type = sections[2][3]
 
+    assert script_type in ("game", "player"), ("script_type", script_type)
+
     form_content = sections[0][1].split("; ")[1:]
     form_data = {}
     for data in form_content:
@@ -79,19 +82,23 @@ def handle_upload_script(request_handler):
         f.write(json.dumps({
             "filename": filename,
             "script_type": script_type,
-            "time": time.time(),
+            "save_time": time.time(),
             "script_hash": script_hash,
             "user": 0,
         }))
     with open(savedir + "script.lua", "w") as f:
         f.write(file_content)
 
-    # Send response back to the client
-    request_handler.send_response(200)
+
+    # request_handler.send_response(200)
+    request_handler.send_response(307)
     # request_handler.send_header("Content-type", "text/html")
+    request_handler.send_header("Location", "/view_script?id=" + script_hash)
     request_handler.end_headers()
+
+    # Send response back to the client
     # request_handler.wfile.write(b"Thank you for submitting the form!")
-    request_handler.wfile.write(bytes(file_content, "utf-8"))
+    # request_handler.wfile.write(bytes(file_content, "utf-8"))
 
 
 host_name = "localhost"
@@ -103,7 +110,12 @@ class MyServer(BaseHTTPRequestHandler):
         path = urlparse_path.path
         query = parse_qs(urlparse_path.query)
 
-        if path == "/fetch_replay_events":
+        assert path[0] == "/"
+
+        if False:
+            pass
+
+        elif path == "/fetch_replay_events":
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
@@ -143,7 +155,7 @@ class MyServer(BaseHTTPRequestHandler):
 
             out = list(reversed(out))
 
-            print(json.dumps(out, indent=2))
+            # print(json.dumps(out, indent=2))
 
             self.wfile.write(bytes(json.dumps(out), "utf-8"))
 
@@ -156,13 +168,27 @@ class MyServer(BaseHTTPRequestHandler):
 
 
 
-        elif path in url_filename_lookup:
-            with open(url_filename_lookup[path], "rb") as f:
+        # elif path in url_filename_lookup:
+        #     with open(url_filename_lookup[path], "rb") as f:
+        #         content = f.read()
+        #     self.send_response(200)
+        #     self.send_header("Content-type", "text/html")
+        #     self.end_headers()
+        #     self.wfile.write(content)
+
+
+        elif os.path.isfile("web" + path):
+            with open("web" + path, "rb") as f:
                 content = f.read()
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(content)
+
+        if path[-1] == "/":
+            self.send_response(302)
+            self.send_header("Location", path + "index.html")
+            self.end_headers()
 
         else:
             self.send_response(404)
