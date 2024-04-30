@@ -191,7 +191,7 @@ def main():
 
 
     import json
-    with open("scripts/history.json", "w") as f:
+    with open("scripts/replay.json", "w") as f:
         f.write(json.dumps(game.display_interface.events))
 
 if __name__ == "__main__": main()

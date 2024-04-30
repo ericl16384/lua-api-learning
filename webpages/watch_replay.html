@@ -1,0 +1,104 @@
+<html>
+<head>
+    <title>lua-api-learning</title>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
+        canvas {
+            background-color:#ffffff;
+            border:2px solid #000000;
+            width: 75%;
+            /* aspect-ratio: auto; */
+        }
+    </style>
+</head>
+<body>
+    <h1>lua-api-learning</h1>
+    <p><a href="/">Return to home</a></p>
+
+    <table>
+        <tr>
+            <th>Replay</th>
+            <th>Game</th>
+            <th>Player</th>
+            <th>Time</th>
+        </tr>
+        <tr>
+            <td>loading...</td>
+            <td>loading...</td>
+            <td>loading...</td>
+            <td>loading...</td>
+        </tr>
+    </table><br>
+
+    <canvas id="drawCanvas" width="1024" height="576">
+        Sorry, your browser does not support canvas.
+    </canvas>
+
+    <script type="text/javascript">
+
+// var urlSearchParams = new URLSearchParams(document.location.search);
+
+
+
+var sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const canvas = document.getElementById("drawCanvas");
+const ctx = canvas.getContext("2d");
+
+// var DisplayInterface_frame = 0;
+// var DisplayInterface_framerate = 1;
+
+
+async function DisplayInterface() {
+    // ctx.clearRect()
+    async function DisplayInterfaceEvents(events) {
+        for (let i=0;i<events.length;i++) {
+            e = events[i];
+            console.log(e);
+            if(e[0] == "clear_display") {
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+            } else if (e[0] == "draw_rect") {
+                ctx.fillStyle = e[5];
+                ctx.fillRect(e[1], e[2], e[3], e[4]);
+            } else if(e[0] == "sleep") {
+                await sleep(e[1]);
+            } else {
+                console.log("UNKNOWN", e)
+            }
+        };
+    }
+
+    // fetch("fetch_game_events?" + new URLSearchParams({
+    //     game: 0
+    // }))
+    fetch("fetch_game_events" + document.location.search)
+        .then(response => response.json())
+        // .then(data => console.log(data));
+        .then(data => DisplayInterfaceEvents(data))
+
+    // DisplayInterface_frame++;
+}
+DisplayInterface();
+// window.setInterval(DisplayInterface, 1000 / DisplayInterface_framerate);
+
+// ctx.fillStyle = "red";
+// ctx.fillRect(400, 300, 150, 75)
+
+    </script>
+</body>
+</html>
