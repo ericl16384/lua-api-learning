@@ -89,9 +89,14 @@ def refresh_replays_index(replays_directory):
     replays_directory_index = replays_directory + index_filename
 
     old_replays = set()
-    with open(replays_directory_index, "r") as f:
-        for l in f.readlines():
-            old_replays.add(json.loads(l)["replay_hash"])
+    if os.path.exists(replays_directory_index):
+        with open(replays_directory_index, "r") as f:
+            for l in f.readlines():
+                old_replays.add(json.loads(l)["replay_hash"])
+    else:
+        if not os.path.exists(replays_directory):
+            os.mkdir(replays_directory)
+            with open(replays_directory_index, "w"): pass
 
     new_replays = []
     for filename in os.listdir(replays_directory):
@@ -131,6 +136,9 @@ class GameInstance:
             self.events = []
 
         def save_as_replay(self, replays_directory):
+            if not os.path.exists(replays_directory):
+                os.mkdir(replays_directory)
+
             filename = f"{replays_directory}{basic_hash(self.events)}.json"
             out = {
                 "info": {

@@ -90,11 +90,15 @@ def handle_upload_script(request_handler):
         f.write(file_content)
 
 
-    # request_handler.send_response(200)
-    request_handler.send_response(307)
-    # request_handler.send_header("Content-type", "text/html")
-    request_handler.send_header("Location", "/view_script?id=" + script_hash)
+    request_handler.send_response(200)
+    # request_handler.send_response(307)
+    request_handler.send_header("Content-type", "text/html")
+    # request_handler.send_header("Location", "/view_script.html?id=" + script_hash)
     request_handler.end_headers()
+
+    request_handler.wfile.write(bytes(
+        f"<meta http-equiv=\"refresh\" content=\"0; URL=view_script.html?id={script_hash}\" />",
+    "utf-8"))
 
     # Send response back to the client
     # request_handler.wfile.write(b"Thank you for submitting the form!")
@@ -131,8 +135,11 @@ class MyServer(BaseHTTPRequestHandler):
 
         elif path == "/fetch_replay_table":
             lines = []
-            with open("replays/__index__.log", "r") as f:
-                lines = f.readlines()
+            try:
+                with open("replays/__index__.log", "r") as f:
+                    lines = f.readlines()
+            except:
+                pass
 
             lines = [json.loads(i) for i in lines]
 
@@ -190,6 +197,8 @@ class MyServer(BaseHTTPRequestHandler):
 
 
         elif os.path.isfile("web" + path):
+            assert ".." not in path
+
             with open("web" + path, "rb") as f:
                 content = f.read()
             self.send_response(200)
@@ -210,7 +219,7 @@ class MyServer(BaseHTTPRequestHandler):
         path = urlparse_path.path
         query = parse_qs(urlparse_path.query)
 
-        if path == "/upload_script":
+        if path == "/post_script":
             handle_upload_script(self)
 
         else:

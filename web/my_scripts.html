@@ -1,0 +1,35 @@
+<html>
+<head>
+    <title>lua-api-learning</title>
+    <style>
+        form {
+            border: 1px solid #000000;
+            float: left;
+            padding: 16px 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>lua-api-learning</h1>
+    <p><a href="/">Home</a></p>
+
+    <h2>Game and player scripts</h2>
+
+    <div><form action="/post_script" method="post" enctype="multipart/form-data">
+        Upload a script file <br>
+        <input type="file" id="myFile" name="filename" required><br>
+
+        <br>
+
+        Choose a file type <br>
+        <input type="radio" id="player" name="script_type" value="player" required>
+        <label for="player">Player</label><br>
+        <input type="radio" id="game" name="script_type" value="game" required>
+        <label for="game">Game</label><br>
+
+        <br>
+
+        <input type="submit">
+    </form></div>
+</body>
+</html>
