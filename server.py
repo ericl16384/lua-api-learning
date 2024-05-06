@@ -21,97 +21,14 @@ import lua_environment
 #     # # "/webpages/replayTable.js": "webpages/replayTable.js"
 # }
 
-def handle_upload_script(request_handler):
-    content_length = int(request_handler.headers["Content-Length"])
-    post_data = request_handler.rfile.read(content_length)
-
-    lines = post_data.decode("utf-8").split("\r\n")
-
-    sections = []
-    i = 0
-    while i < len(lines):
-        if lines[i].startswith("------WebKitFormBoundary"):
-            sections.append(lines[i:i+4])
-            sections.append([])
-            i += 4
-            continue
-        else:
-            sections[-1].append(lines[i])
-            i += 1
-
-    # print(json.dumps(lines, indent=2))
-    # print(json.dumps(sections, indent=2))
-
-    file_content = "\n".join(sections[1])
-
-    # with open("asdf.log", "w") as f:
-    #     f.write(json.dumps(post_data.decode("utf-8").split("\r\n"), indent=2))
-
-    # content = "".join(content).split("\n")
-
-    # Print the form data
-    # print("Submitted Form Data:")
-    # with open("asdf.json", "w") as f:
-    #     f.write(json.dumps(sections, indent=2))
-    # with open("asdf.lua", "w") as f:
-    #     f.write("\n".join(sections[1]))
-    # filename = content[0].split(";")[1].split("=")[1][1:-1]
-
-    # input()
-
-    script_type = sections[2][3]
-
-    assert script_type in ("game", "player"), ("script_type", script_type)
-
-    form_content = sections[0][1].split("; ")[1:]
-    form_data = {}
-    for data in form_content:
-        if i == 0:
-            continue
-
-        k, v = data.split("=")
-        v = v[1:-1]
-        form_data[k] = v
-    # print(form_data)
-    filename = form_data["filename"]
-
-    script_hash = lua_environment.basic_hash(file_content)
-    savedir = "scripts/" + script_hash + "/"
-    if not os.path.exists(savedir):
-        os.mkdir(savedir)
-
-    with open(savedir + "info.json", "w") as f:
-        f.write(json.dumps({
-            "filename": filename,
-            "script_type": script_type,
-            "save_time": time.time(),
-            "script_hash": script_hash,
-            "user": 0,
-        }))
-    with open(savedir + "script.lua", "w") as f:
-        f.write(file_content)
 
 
-    request_handler.send_response(200)
-    # request_handler.send_response(307)
-    request_handler.send_header("Content-type", "text/html")
-    # request_handler.send_header("Location", "/view_script.html?id=" + script_hash)
-    request_handler.end_headers()
-
-    request_handler.wfile.write(bytes(
-        f"<meta http-equiv=\"refresh\" content=\"0; URL=view_script.html?id={script_hash}\" />",
-    "utf-8"))
-
-    # Send response back to the client
-    # request_handler.wfile.write(b"Thank you for submitting the form!")
-    # request_handler.wfile.write(bytes(file_content, "utf-8"))
-
-def handle_run_script(game, players):
-    pass
+# run_script_queue = queue.Queue()
 
 
 
-class MyServer(BaseHTTPRequestHandler):
+
+class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         urlparse_path = urlparse(self.path)
         path = urlparse_path.path
@@ -222,7 +139,7 @@ class MyServer(BaseHTTPRequestHandler):
             # print("sleeping")
             # time.sleep(10)
             # print("finished sleeping", urlparse_path.query)
-            pass
+            self.handle_run_script(game, players)
 
         else:
             self.send_response(404)
@@ -233,15 +150,134 @@ class MyServer(BaseHTTPRequestHandler):
         query = parse_qs(urlparse_path.query)
 
         if path == "/post_script":
-            handle_upload_script(self)
+            self.handle_upload_script()
 
         else:
             self.send_response(404)
+    
+    def save_script(self, file_content, filename, script_type):
+        script_hash = lua_environment.basic_hash(file_content)
+        savedir = "scripts/" + script_hash + "/"
+        if not os.path.exists(savedir):
+            os.mkdir(savedir)
+
+        with open(savedir + "info.json", "w") as f:
+            f.write(json.dumps({
+                "filename": filename,
+                "script_type": script_type,
+                "save_time": time.time(),
+                "script_hash": script_hash,
+                "user": 0,
+            }))
+        with open(savedir + "script.lua", "w") as f:
+            f.write(file_content)
+        
+        return script_hash
+
+    def handle_upload_script(self):
+        content_length = int(self.headers["Content-Length"])
+        post_data = self.rfile.read(content_length)
+
+        lines = post_data.decode("utf-8").split("\r\n")
+
+        sections = []
+        i = 0
+        while i < len(lines):
+            if lines[i].startswith("------WebKitFormBoundary"):
+                sections.append(lines[i:i+4])
+                sections.append([])
+                i += 4
+                continue
+            else:
+                sections[-1].append(lines[i])
+                i += 1
+
+        # print(json.dumps(lines, indent=2))
+        # print(json.dumps(sections, indent=2))
+
+        file_content = "\n".join(sections[1])
+
+        # with open("asdf.log", "w") as f:
+        #     f.write(json.dumps(post_data.decode("utf-8").split("\r\n"), indent=2))
+
+        # content = "".join(content).split("\n")
+
+        # Print the form data
+        # print("Submitted Form Data:")
+        # with open("asdf.json", "w") as f:
+        #     f.write(json.dumps(sections, indent=2))
+        # with open("asdf.lua", "w") as f:
+        #     f.write("\n".join(sections[1]))
+        # filename = content[0].split(";")[1].split("=")[1][1:-1]
+
+        # input()
+
+        script_type = sections[2][3]
+
+        assert script_type in ("game", "player"), ("script_type", script_type)
+
+        form_content = sections[0][1].split("; ")[1:]
+        form_data = {}
+        for data in form_content:
+            if i == 0:
+                continue
+
+            k, v = data.split("=")
+            v = v[1:-1]
+            form_data[k] = v
+        # print(form_data)
+        filename = form_data["filename"]
+
+        script_hash = self.save_script(file_content, filename, script_type)
+
+
+        self.send_response(200)
+        # self.send_response(307)
+        self.send_header("Content-type", "text/html")
+        # self.send_header("Location", "/view_script.html?id=" + script_hash)
+        self.end_headers()
+
+        self.wfile.write(bytes(
+            f"<meta http-equiv=\"refresh\" content=\"0; URL=view_script.html?id={script_hash}\" />",
+        "utf-8"))
+
+        # Send response back to the client
+        # self.wfile.write(b"Thank you for submitting the form!")
+        # self.wfile.write(bytes(file_content, "utf-8"))
+    
+    def handle_run_script(self, game, players):
+        # I'll need to figure out an async way to do this :)
+        # run_script_queue.put((game, players))
+
+
+        # timeout_length = 3
+
+        
+        # try:
+        #     p = multiprocessing.Process(target=lua_environment.main)
+        #     start_time = time.time()
+        #     p.start()
+        #     p.join(timeout_length)
+        #     end_time = time.time()
+        #     elapsed_time = end_time - start_time
+        #     print("elapsed_time", elapsed_time)
+        #     if p.is_alive():
+        #         p.terminate()
+        #         # p.join()
+            
+        #     self.save_replay()
+
+        # except:
+        #     print(traceback.format_exc())
+
+        pass
+
+
 
 
 
 def run_server(host_name, server_port):
-    web_server = HTTPServer((host_name, server_port), MyServer)
+    web_server = HTTPServer((host_name, server_port), RequestHandler)
     print("Server started http://%s:%s" % (host_name, server_port))
 
     try:
