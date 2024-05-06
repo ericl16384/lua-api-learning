@@ -6,18 +6,20 @@ import json
 import multiprocessing
 import os
 import time
+import threading
 import traceback
+import queue
 
 import lua_environment
 
 
 
-url_filename_lookup = {
-    "/": "webpages/index.html",
-    # "/upload_script": "webpages/upload_script.html",
-    # "/watch_replay": "webpages/watch_replay.html",
-    # # "/webpages/replayTable.js": "webpages/replayTable.js"
-}
+# url_filename_lookup = {
+#     "/": "webpages/index.html",
+#     # "/upload_script": "webpages/upload_script.html",
+#     # "/watch_replay": "webpages/watch_replay.html",
+#     # # "/webpages/replayTable.js": "webpages/replayTable.js"
+# }
 
 def handle_upload_script(request_handler):
     content_length = int(request_handler.headers["Content-Length"])
@@ -104,9 +106,10 @@ def handle_upload_script(request_handler):
     # request_handler.wfile.write(b"Thank you for submitting the form!")
     # request_handler.wfile.write(bytes(file_content, "utf-8"))
 
+def handle_run_script(game, players):
+    pass
 
-host_name = "localhost"
-server_port = 80
+
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -211,6 +214,16 @@ class MyServer(BaseHTTPRequestHandler):
             self.send_header("Location", path + "index.html")
             self.end_headers()
 
+        elif path == "/run_script": # will be POST
+            game = query.get("game")[0]
+            players = query.get("player")
+            assert len(players) == 1
+
+            # print("sleeping")
+            # time.sleep(10)
+            # print("finished sleeping", urlparse_path.query)
+            pass
+
         else:
             self.send_response(404)
 
@@ -226,6 +239,18 @@ class MyServer(BaseHTTPRequestHandler):
             self.send_response(404)
 
 
+
+def run_server(host_name, server_port):
+    web_server = HTTPServer((host_name, server_port), MyServer)
+    print("Server started http://%s:%s" % (host_name, server_port))
+
+    try:
+        web_server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+    web_server.server_close()
+    print("Server stopped.")
 
 
 def main():
@@ -244,15 +269,12 @@ def main():
     # except:
     #     print(traceback.format_exc())
 
-    web_server = HTTPServer((host_name, server_port), MyServer)
-    print("Server started http://%s:%s" % (host_name, server_port))
+    # server_process = multiprocessing.Process(target=run_server)
+    # server_process.start()
+    server_thread = threading.Thread(target=run_server, args=("localhost", 80))
+    server_thread.start()
 
-    try:
-        web_server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-
-    web_server.server_close()
-    print("Server stopped.")
+    while True:
+        time.sleep(10)
 
 if __name__ == "__main__": main()
