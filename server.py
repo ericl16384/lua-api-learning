@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 
+import ctypes
 import json
 import multiprocessing
 import os
@@ -41,17 +42,15 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         elif path == "/fetch_replay_events":
             replay_id = query.get("id")
-            if replay_id:
-                with open(f"replays/{replay_id[0]}.json", "r") as f:
+            filename = f"replays/{replay_id[0]}.json"
+            if replay_id and os.path.isfile(filename):
+                with open(filename, "r") as f:
                     events = json.loads(f.read())
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(bytes(json.dumps(events), "utf-8"))
             else:
-                events = None
-
-            # print(events)
-
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(bytes(json.dumps(events), "utf-8"))
+                self.send_response(404)
 
         elif path == "/fetch_replay_table":
             lines = []
@@ -85,16 +84,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             # self.wfile.(bytes(json.dumps(replays), "utf-8"))
         
         elif path == "/fetch_script":
-            directory = "scripts/" + query.get("id")[0] + "/"
-            with open(directory + "info.json", "r") as f:
-                info = json.loads(f.read())
-            with open(directory + "script.lua", "r") as f:
-                script = f.read()
-
-            out = {
-                "info": info,
-                "script": script
-            }
+            out = self.get_script(query.get("id")[0])
 
             self.send_response(200)
             self.end_headers()
@@ -155,24 +145,22 @@ class RequestHandler(BaseHTTPRequestHandler):
         else:
             self.send_response(404)
     
-    def save_script(self, file_content, filename, script_type):
-        script_hash = lua_environment.basic_hash(file_content)
-        savedir = "scripts/" + script_hash + "/"
-        if not os.path.exists(savedir):
-            os.mkdir(savedir)
-
-        with open(savedir + "info.json", "w") as f:
-            f.write(json.dumps({
-                "filename": filename,
-                "script_type": script_type,
-                "save_time": time.time(),
-                "script_hash": script_hash,
-                "user": 0,
-            }))
-        with open(savedir + "script.lua", "w") as f:
-            f.write(file_content)
+    def get_script(self, id):
+        directory = "scripts/" + id + "/"
+        if not os.path.isdir(directory):
+            return None
         
-        return script_hash
+        with open(directory + "info.json", "r") as f:
+            info = json.loads(f.read())
+        with open(directory + "script.lua", "r") as f:
+            script = f.read()
+
+        return {
+            "info": info,
+            "script": script
+        }
+        # else:
+        #     return False
 
     def handle_upload_script(self):
         content_length = int(self.headers["Content-Length"])
@@ -232,11 +220,8 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
         self.send_response(200)
-        # self.send_response(307)
         self.send_header("Content-type", "text/html")
-        # self.send_header("Location", "/view_script.html?id=" + script_hash)
         self.end_headers()
-
         self.wfile.write(bytes(
             f"<meta http-equiv=\"refresh\" content=\"0; URL=view_script.html?id={script_hash}\" />",
         "utf-8"))
@@ -249,28 +234,65 @@ class RequestHandler(BaseHTTPRequestHandler):
         # I'll need to figure out an async way to do this :)
         # run_script_queue.put((game, players))
 
+        try:
+            replay_hash = self.generate_game_replay(game, players)
+        except:
+            # print(traceback.format_exc())
+            self.send_response(400)
+            self.wfile.write(bytes(traceback.format_exc(), "utf-8"))
+            return
 
-        # timeout_length = 3
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(bytes(
+            f"<meta http-equiv=\"refresh\" content=\"0; URL=watch_replay.html?id={replay_hash}\" />",
+        "utf-8"))
+    
+    def save_script(self, file_content, filename, script_type):
+        script_hash = lua_environment.basic_hash(file_content)
+        savedir = "scripts/" + script_hash + "/"
+        if not os.path.exists(savedir):
+            os.mkdir(savedir)
 
+        with open(savedir + "info.json", "w") as f:
+            f.write(json.dumps({
+                "filename": filename,
+                "script_type": script_type,
+                "save_time": time.time(),
+                "script_hash": script_hash,
+                "user": 0,
+            }))
+        with open(savedir + "script.lua", "w") as f:
+            f.write(file_content)
         
-        # try:
-        #     p = multiprocessing.Process(target=lua_environment.main)
-        #     start_time = time.time()
-        #     p.start()
-        #     p.join(timeout_length)
-        #     end_time = time.time()
-        #     elapsed_time = end_time - start_time
-        #     print("elapsed_time", elapsed_time)
-        #     if p.is_alive():
-        #         p.terminate()
-        #         # p.join()
-            
-        #     self.save_replay()
+        return script_hash
+    
+    def generate_game_replay(self, game_id, player_ids):
+        assert len(player_ids) == 1
 
-        # except:
-        #     print(traceback.format_exc())
+        game_script = self.get_script(game_id)["script"]
+        player_script = self.get_script(player_ids[0])["script"]
 
-        pass
+        timeout_length = 3
+
+        out = multiprocessing.Manager().Value(ctypes.c, "")
+        # print(out.value)
+        p = multiprocessing.Process(target=lua_environment.run_new_game_process, args=(
+            out,
+            game_script, player_script
+        ))
+        # start_time = time.time()
+        p.start()
+        p.join(timeout_length)
+        # end_time = time.time()
+        # elapsed_time = end_time - start_time
+        # print("elapsed_time", elapsed_time)
+        if p.is_alive():
+            p.terminate()
+            # p.join()
+        # print(out.value)
+        return out.value
 
 
 

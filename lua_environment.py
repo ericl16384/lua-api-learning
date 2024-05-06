@@ -1,4 +1,10 @@
-import json, hashlib, logging, os, time
+import json
+import hashlib
+import logging
+import multiprocessing
+import os
+import time
+import traceback
 
 # logging_formatter = logging.Formatter("%(asctime)s: %(message)s")
 logging_formatter = logging.Formatter("%(message)s")
@@ -139,7 +145,8 @@ class GameInstance:
             if not os.path.exists(replays_directory):
                 os.mkdir(replays_directory)
 
-            filename = f"{replays_directory}{basic_hash(self.events)}.json"
+            replay_id = basic_hash(self.events)
+            filename = f"{replays_directory}{replay_id}.json"
             out = {
                 "info": {
                     "replay_hash": basic_hash(self.events),
@@ -153,6 +160,8 @@ class GameInstance:
                 f.write(json.dumps(out))
 
             refresh_replays_index(replays_directory)
+
+            return replay_id
 
         # def get_HTML_canvas(self, width=1024, height=576):
         #     # self_hash = basic_hash(self)
@@ -249,12 +258,18 @@ def run_new_game(game_script, player_script):
     game = GameInstance(game_script, player_script)
     game.run_player()
 
-    game.display_interface.save_as_replay("replays/")
+    return game.display_interface.save_as_replay("replays/")
 
     # events = game.display_interface.events
 
     # with open(f"replays/{basic_hash(events)}.json", "w") as f:
     #     f.write(json.dumps(events))
+
+def run_new_game_process(out:multiprocessing.Value, *args, **kwargs):
+    # try:
+    out.value = run_new_game(*args, **kwargs)
+    # except Exception as err:
+    #     out.value = traceback.format_exc()
 
 def main():
     run_new_game(load_script("game"), load_script("player"))
