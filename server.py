@@ -253,7 +253,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             "utf-8"))
         else:
             self.send_response(400)
-            self.send_header("Content-type", "text/html")
+            # self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(bytes(str(result), "utf-8"))
     

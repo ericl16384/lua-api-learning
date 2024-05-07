@@ -276,8 +276,8 @@ def run_new_game_process(connection:multiprocessing.connection.Connection, *args
     try:
         result = run_new_game(*args, **kwargs)
         success = True
-    except Exception as err:
-        result = err
+    except:
+        result = traceback.format_exc()
         success = False
     
     connection.send((success, result))
