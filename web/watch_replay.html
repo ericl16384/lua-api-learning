@@ -20,8 +20,7 @@
 
         canvas {
             background-color:#ffffff;
-            border:2px solid #000000;
-            width: 75%;
+            border:1px solid #000000;
             /* aspect-ratio: auto; */
         }
     </style>
@@ -43,9 +42,14 @@
         <tbody id="replayTableBody"></tbody>
     </table><br>
 
-    <canvas id="drawCanvas" width="1024" height="576">
-        Sorry, your browser does not support canvas.
-    </canvas>
+    <div style="aspect-ratio:inherit;">
+        <canvas id="drawCanvas" width="1024" height="576" style="width:74%;">
+            Sorry, your browser does not support canvas.
+        </canvas>
+        <div style="float:right;width:24%;overflow:auto;height:85%;border:1px solid #000000;">
+            <pre id="textOutput"></pre>
+        </div>
+    </div>
 
     <script src="replayTable.js"></script>
     <script type="text/javascript">
@@ -58,6 +62,8 @@ var sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const canvas = document.getElementById("drawCanvas");
 const ctx = canvas.getContext("2d");
+
+const textOutput = document.getElementById("textOutput");
 
 // var DisplayInterface_frame = 0;
 // var DisplayInterface_framerate = 1;
@@ -77,6 +83,8 @@ async function DisplayInterface() {
                 ctx.fillRect(e[1], e[2], e[3], e[4]);
             } else if(e[0] == "sleep") {
                 await sleep(e[1]);
+            } else if(e[0] == "print") {
+                textOutput.innerText += e[1];
             } else {
                 console.log("UNKNOWN", e)
             }

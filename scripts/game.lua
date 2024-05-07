@@ -167,15 +167,15 @@ function make_maze(width, height)
 
         dead_end = false
         while not dead_end do
-            print("adjacents", json_dumps(adjacents))
+            -- print("adjacents", json_dumps(adjacents))
             key = random_choice_key(adjacents)
-            print("key", key)
+            -- print("key", key)
             if key == nil then
                 dead_end = true
                 break
             end
             node = adjacents[key]
-            print("node", json_dumps(node))
+            -- print("node", json_dumps(node))
             adjacents[key] = nil
 
             -- print(v.x)
@@ -256,25 +256,25 @@ end
 
 function move_up()
     out = move(units[1], units[1].x, units[1].y-1)--units[1].y+1)
-    print("move_up")
+    -- print("move_up")
     display()
     return out
 end
 function move_left()
     out = move(units[1], units[1].x-1, units[1].y)
-    print("move_left")
+    -- print("move_left")
     display()
     return out
 end
 function move_down()
     out = move(units[1], units[1].x, units[1].y+1)--units[1].y-1)
-    print("move_left")
+    -- print("move_left")
     display()
     return out
 end
 function move_right()
     out = move(units[1], units[1].x+1, units[1].y)
-    print("move_right")
+    -- print("move_right")
     display()
     return out
 end

@@ -28,7 +28,7 @@ def setup_logger(name, log_file, level=logging.INFO):
 # import lupa
 import lupa.lua54
 
-def create_lua_environment(logger_filename):
+def create_lua_environment(print_function):
     # Initialize Lua runtime
     lua = lupa.lua54.LuaRuntime(
         register_eval=False,
@@ -47,9 +47,10 @@ def create_lua_environment(logger_filename):
         globals[b] = None
 
     # Capture print statments (otherwise they go to stdout)
-    with open(logger_filename, "w"): pass # clear file
-    logger = setup_logger(logger_filename, logger_filename, logging.INFO)
-    globals.print = lambda *args: logger.info(" ".join([str(arg) for arg in args]))
+    # with open(logger_filename, "w"): pass # clear file
+    # logger = setup_logger(logger_filename, logger_filename, logging.INFO)
+    # globals.print = lambda *args: logger.info(" ".join([str(arg) for arg in args]))
+    globals.print = print_function
 
     return lua, globals
 
@@ -215,20 +216,26 @@ class GameInstance:
 
         def sleep(self, seconds):
             self.events.append(("sleep", seconds*1000))
+        
+        def print(self, *msgs):
+            self.events.append(("print", " ".join([str(msg) for msg in msgs])+"\n"))
 
     def __init__(self, game_script, player_script):
         self.game_script = game_script
         self.player_script = player_script
 
-        self.game_lua, self.game_globals = create_lua_environment("scripts/game.log")
-        self.player_lua, self.player_globals = create_lua_environment("scripts/player.log")
+        self.display_interface = self.DisplayInterface(
+            basic_hash(self.game_script), basic_hash(self.player_script)
+        )
+        
+        self.game_lua, self.game_globals = create_lua_environment(self.display_interface.print)
+        self.player_lua, self.player_globals = create_lua_environment(self.display_interface.print)
 
         # draw = []
 
         # self.game_globals.turn_end = lambda : visualize(self.game_globals)
         # self.game_globals.turn_end = lambda : input("end turn")
 
-        self.display_interface = self.DisplayInterface(basic_hash(self.game_script), basic_hash(self.player_script))
         self.game_globals.clear_display = self.display_interface.clear_display
         self.game_globals.draw_rect = self.display_interface.draw_rect
         self.game_globals.sleep = self.display_interface.sleep
