@@ -11,6 +11,8 @@ import threading
 import traceback
 import queue
 
+import lupa
+
 import lua_environment
 
 
@@ -234,20 +236,26 @@ class RequestHandler(BaseHTTPRequestHandler):
         # I'll need to figure out an async way to do this :)
         # run_script_queue.put((game, players))
 
-        try:
-            replay_hash = self.generate_game_replay(game, players)
-        except:
-            # print(traceback.format_exc())
+        # try:
+        success, result = self.generate_game_replay(game, players)
+        # except:
+        #     # print(traceback.format_exc())
+        #     self.send_response(400)
+        #     self.wfile.write(bytes(traceback.format_exc(), "utf-8"))
+        #     return
+        
+        if success:
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(bytes(
+                f"<meta http-equiv=\"refresh\" content=\"0; URL=watch_replay.html?id={result}\" />",
+            "utf-8"))
+        else:
             self.send_response(400)
-            self.wfile.write(bytes(traceback.format_exc(), "utf-8"))
-            return
-
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        self.wfile.write(bytes(
-            f"<meta http-equiv=\"refresh\" content=\"0; URL=watch_replay.html?id={replay_hash}\" />",
-        "utf-8"))
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(bytes(str(result), "utf-8"))
     
     def save_script(self, file_content, filename, script_type):
         script_hash = lua_environment.basic_hash(file_content)
@@ -269,6 +277,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         return script_hash
     
     def generate_game_replay(self, game_id, player_ids):
+        """returns (success, result)"""
+
         assert len(player_ids) == 1
 
         game_script = self.get_script(game_id)["script"]
@@ -276,10 +286,11 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         timeout_length = 3
 
-        out = multiprocessing.Manager().Value(ctypes.c, "")
+        # out = multiprocessing.Manager().Value(ctypes.c, "")
         # print(out.value)
+        connection_receiver, connection_sender = multiprocessing.Pipe()
         p = multiprocessing.Process(target=lua_environment.run_new_game_process, args=(
-            out,
+            connection_sender,
             game_script, player_script
         ))
         # start_time = time.time()
@@ -290,9 +301,12 @@ class RequestHandler(BaseHTTPRequestHandler):
         # print("elapsed_time", elapsed_time)
         if p.is_alive():
             p.terminate()
+            return False, TimeoutError(timeout_length)
+        success, result = connection_receiver.recv()
+        return success, result
             # p.join()
         # print(out.value)
-        return out.value
+        # return out.value
 
 
 
@@ -333,6 +347,6 @@ def main():
     server_thread.start()
 
     while True:
-        time.sleep(10)
+        time.sleep(1)
 
 if __name__ == "__main__": main()

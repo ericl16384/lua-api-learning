@@ -2,6 +2,7 @@ import json
 import hashlib
 import logging
 import multiprocessing
+import multiprocessing.connection
 import os
 import time
 import traceback
@@ -265,11 +266,21 @@ def run_new_game(game_script, player_script):
     # with open(f"replays/{basic_hash(events)}.json", "w") as f:
     #     f.write(json.dumps(events))
 
-def run_new_game_process(out:multiprocessing.Value, *args, **kwargs):
+def run_new_game_process(connection:multiprocessing.connection.Connection, *args, **kwargs):
+    """returns (success, result)"""
+
     # try:
-    out.value = run_new_game(*args, **kwargs)
+    # out.value = run_new_game(*args, **kwargs)
     # except Exception as err:
     #     out.value = traceback.format_exc()
+    try:
+        result = run_new_game(*args, **kwargs)
+        success = True
+    except Exception as err:
+        result = err
+        success = False
+    
+    connection.send((success, result))
 
 def main():
     run_new_game(load_script("game"), load_script("player"))
